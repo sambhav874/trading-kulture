@@ -223,271 +223,325 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold mb-4">Partner Dashboard</h1>
       <p className="mb-6">Welcome, {session.user.name}</p>
       
-      <Tabs defaultValue="leads" className="w-full">
-        <TabsList>
-          <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="kits">Kits</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="leads">
-          <div className="space-y-6">
-            <LeadTable leads={leads} status="new" handleStatusUpdate={handleStatusUpdate} />
-            <LeadTable leads={leads} status="contacted" handleStatusUpdate={handleStatusUpdate} />
-            <LeadTable leads={leads} status="successful" handleStatusUpdate={handleStatusUpdate} />
-            <LeadTable leads={leads} status="lost" handleStatusUpdate={handleStatusUpdate} />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="sales">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Leads</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Lead Name</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Record Sale</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leads
-                      .filter(lead => lead.status === 'contacted' || lead.status === 'new')
-                      .map((lead) => (
-                        <TableRow key={lead._id}>
-                          <TableCell>{lead.name}</TableCell>
-                          <TableCell>{lead.status}</TableCell>
-                          <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline">Record Sale</Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Record Sale for {lead.name}</DialogTitle>
-                                </DialogHeader>
-                                <form 
-                                  onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSaleRecord(lead._id, {
-                                      amount: e.target.amount.value
-                                    });
-                                  }}
-                                  className="space-y-4 mt-4"
-                                >
-                                  <div className="space-y-2">
-                                    <Label htmlFor="amount">Amount</Label>
-                                    <Input
-                                      id="amount"
-                                      name="amount"
-                                      type="number"
-                                      min="0"
-                                      step="10"
-                                      required
-                                      placeholder="Enter amount"
-                                    />
-                                  </div>
-                                  <Button type="submit" className="w-full">
-                                    Record Sale
-                                  </Button>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                        </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Successful Sales</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Lead Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone Number</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leads
-                      .filter(lead => lead.status === 'successful')
-                      .map((lead) => {
-                        const leadSales = sales.filter(sale => sale.leadId === lead._id);
-                        return leadSales.map((sale, index) => (
-                          <TableRow key={`${lead._id}-${index}`}>
-                            <TableCell>{lead.name}</TableCell>
-                            <TableCell>{lead.email}</TableCell>
-                            <TableCell>{lead.mobileNo}</TableCell>
-                            <TableCell>Rs {sale.amount.toFixed(2)}</TableCell>
-                            <TableCell>{new Date(sale.createdAt).toLocaleDateString()}</TableCell>
-                          </TableRow>
-                        ));
-                      })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Lead Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LeadStatusChart leads={leads} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SalesChart sales={sales} />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="kits">
-          <div className="space-y-6">
-            <div className="flex justify-between items-start">
-              <Card className="flex-1 mr-4">
+      {session.user.role !== 'admin' ? (
+        <Tabs defaultValue="leads" className="w-full">
+          <TabsList>
+            <TabsTrigger value="leads">Leads</TabsTrigger>
+            <TabsTrigger value="sales">Sales</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="kits">Kits</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="leads">
+            <div className="space-y-6">
+              <LeadTable leads={leads} status="new" handleStatusUpdate={handleStatusUpdate} />
+              <LeadTable leads={leads} status="contacted" handleStatusUpdate={handleStatusUpdate} />
+              <LeadTable leads={leads} status="successful" handleStatusUpdate={handleStatusUpdate} />
+              <LeadTable leads={leads} status="lost" handleStatusUpdate={handleStatusUpdate} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="sales">
+            <div className="space-y-6">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Current Kit Inventory</CardTitle>
+                  <CardTitle>Active Leads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Lead Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Record Sale</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leads
+                        .filter(lead => lead.status === 'contacted' || lead.status === 'new')
+                        .map((lead) => (
+                          <TableRow key={lead._id}>
+                            <TableCell>{lead.name}</TableCell>
+                            <TableCell>{lead.status}</TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline">Record Sale</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Record Sale for {lead.name}</DialogTitle>
+                                  </DialogHeader>
+                                  <form 
+                                    onSubmit={(e) => {
+                                      e.preventDefault();
+                                      handleSaleRecord(lead._id, {
+                                        amount: e.target.amount.value
+                                      });
+                                    }}
+                                    className="space-y-4 mt-4"
+                                  >
+                                    <div className="space-y-2">
+                                      <Label htmlFor="amount">Amount</Label>
+                                      <Input
+                                        id="amount"
+                                        name="amount"
+                                        type="number"
+                                        min="0"
+                                        step="10"
+                                        required
+                                        placeholder="Enter amount"
+                                      />
+                                    </div>
+                                    <Button type="submit" className="w-full">
+                                      Record Sale
+                                    </Button>
+                                  </form>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Successful Sales</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Lead Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone Number</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leads
+                        .filter(lead => lead.status === 'successful')
+                        .map((lead) => {
+                          const leadSales = sales.filter(sale => sale.leadId === lead._id);
+                          return leadSales.map((sale, index) => (
+                            <TableRow key={`${lead._id}-${index}`}>
+                              <TableCell>{lead.name}</TableCell>
+                              <TableCell>{lead.email}</TableCell>
+                              <TableCell>{lead.mobileNo}</TableCell>
+                              <TableCell>Rs {sale.amount.toFixed(2)}</TableCell>
+                              <TableCell>{new Date(sale.createdAt).toLocaleDateString()}</TableCell>
+                            </TableRow>
+                          ));
+                        })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lead Status Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LeadStatusChart leads={leads} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SalesChart sales={sales} />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="kits">
+            <div className="space-y-6">
+              <div className="flex justify-between items-start">
+                <Card className="flex-1 mr-4">
+                  <CardHeader>
+                    <CardTitle>Current Kit Inventory</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {kitDataLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading inventory...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-4xl font-bold mb-2">
+                          {kits.available}
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>Available kits for distribution</p>
+                          <p>Total allocated: {kits.total}</p>
+                          <p>Already distributed: {kits.distributed}</p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button disabled={kitDataLoading}>Request More Kits</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Request Additional Kits</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Please specify the quantity of kits you need.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleKitRequest({
+                          quantity: e.target.quantity.value
+                        });
+                      }}
+                      className="space-y-4 mt-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="quantity">Quantity Needed</Label>
+                        <Input
+                          id="quantity"
+                          name="quantity"
+                          type="number"
+                          min="1"
+                          required
+                          placeholder="Enter quantity"
+                        />
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction type="submit" disabled={requestLoading}>
+                          {requestLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            'Submit Request'
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </form>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kit Request History</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {kitDataLoading ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center py-8 space-x-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Loading inventory...</span>
+                      <span>Loading history...</span>
                     </div>
                   ) : (
-                    <>
-                      <div className="text-4xl font-bold mb-2">
-                        {kits.available}
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Available kits for distribution</p>
-                        <p>Total allocated: {kits.total}</p>
-                        <p>Already distributed: {kits.distributed}</p>
-                      </div>
-                    </>
+                    <ScrollArea className="h-[400px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {kitHistory.length > 0 ? (
+                            kitHistory.map((record) => (
+                              <TableRow key={record._id}>
+                                <TableCell>
+                                  {new Date(record.date).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>{record.quantity}</TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={
+                                      record.status === 'approved' ? 'outline' :
+                                      record.status === 'pending' ? 'secondary' :
+                                      'destructive'
+                                    }
+                                  >
+                                    {record.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center py-8">
+                                <div className="text-muted-foreground space-y-2">
+                                  <p>No kit requests made yet</p>
+                                  <p className="text-sm">Use the "Request More Kits" button to make your first request</p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
                   )}
                 </CardContent>
               </Card>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button disabled={kitDataLoading}>Request More Kits</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Request Additional Kits</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Please specify the quantity of kits you need.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleKitRequest({
-                        quantity: e.target.quantity.value
-                      });
-                    }}
-                    className="space-y-4 mt-4"
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity Needed</Label>
-                      <Input
-                        id="quantity"
-                        name="quantity"
-                        type="number"
-                        min="1"
-                        required
-                        placeholder="Enter quantity"
-                      />
-                    </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction type="submit" disabled={requestLoading}>
-                        {requestLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Submitting...
-                          </>
-                        ) : (
-                          'Submit Request'
-                        )}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </form>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Kit Request History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {kitDataLoading ? (
-                  <div className="flex items-center justify-center py-8 space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Loading history...</span>
-                  </div>
-                ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Received Kits History</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <ScrollArea className="h-[400px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Date</TableHead>
+                          <TableHead>Date Received</TableHead>
                           <TableHead>Quantity</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>Notes</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {kitHistory.length > 0 ? (
-                          kitHistory.map((record) => (
-                            <TableRow key={record._id}>
+                        {receivedKits.length > 0 ? (
+                          receivedKits.map((kit) => (
+                            <TableRow key={kit._id}>
                               <TableCell>
-                                {new Date(record.date).toLocaleDateString()}
+                                {new Date(kit.createdAt).toLocaleDateString()}
                               </TableCell>
-                              <TableCell>{record.quantity}</TableCell>
+                              <TableCell>{kit.quantity}</TableCell>
                               <TableCell>
                                 <Badge 
                                   variant={
-                                    record.status === 'approved' ? 'outline' :
-                                    record.status === 'pending' ? 'secondary' :
+                                    kit.status === 'delivered' ? 'outline' :
+                                    kit.status === 'in-transit' ? 'secondary' :
                                     'destructive'
                                   }
                                 >
-                                  {record.status}
+                                  {kit.status}
                                 </Badge>
                               </TableCell>
+                              <TableCell>{kit.notes || '-'}</TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={3} className="text-center py-8">
+                            <TableCell colSpan={4} className="text-center py-8">
                               <div className="text-muted-foreground space-y-2">
-                                <p>No kit requests made yet</p>
-                                <p className="text-sm">Use the "Request More Kits" button to make your first request</p>
+                                <p>No kits received yet</p>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -495,64 +549,12 @@ export default function Dashboard() {
                       </TableBody>
                     </Table>
                   </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Received Kits History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date Received</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Notes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {receivedKits.length > 0 ? (
-                        receivedKits.map((kit) => (
-                          <TableRow key={kit._id}>
-                            <TableCell>
-                              {new Date(kit.createdAt).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>{kit.quantity}</TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={
-                                  kit.status === 'delivered' ? 'outline' :
-                                  kit.status === 'in-transit' ? 'secondary' :
-                                  'destructive'
-                                }
-                              >
-                                {kit.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{kit.notes || '-'}</TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8">
-                            <div className="text-muted-foreground space-y-2">
-                              <p>No kits received yet</p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      ) : null}
     </div>
   );
 }

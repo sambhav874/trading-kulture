@@ -44,7 +44,7 @@ export default function AdminDashboard() {
       title: 'Kits and Inventory',
       description: 'Managing Inventory and Kits with respect to the partner',
       icon: UserPlus,
-      route: '/kits',
+      route: '/admin/kits-inventory',
       stats: 'Add partner',
       color: 'bg-green-500'
     },
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
       title: 'Partner Analytics',
       description: 'View performance metrics and analytics',
       icon: BarChart,
-      route: '/partner-analytics',
+      route: '/admin/partner-stats',
       stats: 'View analytics',
       color: 'bg-purple-500'
     },
