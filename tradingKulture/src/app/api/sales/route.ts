@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 import connectDB from '@/lib/db';
-import Sale from '@/lib/models/Sale';
+import mongoose from 'mongoose';
+import {Sale} from '@/lib/models/Sale';
 import Lead from '@/lib/models/Lead';
+import { Inventory } from '@/lib/models/Inventory';
 
 export async function GET(request) {
   try {
@@ -42,22 +44,41 @@ export async function POST(request) {
 
     const body = await request.json();
     const { leadId, amount, partnerId } = body;
+    console.log('Request body:', body);
 
     // Validate required fields
-    if (!leadId || !amount || !partnerId) {
+    if (!leadId || !amount || !partnerId ) {
+      console.log('Missing fields:', { leadId, amount, partnerId });
       return NextResponse.json({ 
         error: 'Missing required fields: leadId, quantity, amount, and partnerId are required' 
       }, { status: 400 });
     }
 
     // Validate numeric fields
-    if ( isNaN(amount)  || amount < 0) {
+    if ( isNaN(amount) || amount < 0 ) {
+      console.log('Invalid numeric values:', { amount,  });
       return NextResponse.json({ 
         error: 'Invalid quantity or amount values' 
       }, { status: 400 });
     }
 
     await connectDB();
+
+    // First check available inventory
+    console.log('Searching inventory with partnerId:', partnerId);
+    const inventory = await Inventory.findOne({ 
+      partnerId: new mongoose.Types.ObjectId(partnerId), 
+      status: 'available' 
+    });
+    console.log('Found inventory:', inventory);
+    console.log('Inventory query:', { partnerId, status: 'available' });
+    
+    if (!inventory) {
+      return NextResponse.json({ error: 'No available inventory found for this partner' }, { status: 404 });
+    }
+    if (inventory.quantity < 1) {
+      return NextResponse.json({ error: 'Insufficient inventory for this sale' }, { status: 400 });
+    }
 
     // Verify the lead exists and belongs to the partner
     const lead = await Lead.findOne({ _id: leadId, assignedTo : partnerId });
@@ -80,6 +101,17 @@ export async function POST(request) {
       lead.status = 'successful';
       await lead.save();
     }
+    
+    // Update inventory with actual sale quantity
+    const updatedInventory = await Inventory.findOneAndUpdate(
+      { partnerId: new mongoose.Types.ObjectId(partnerId), status: 'available' },
+      { $inc: { 
+          quantity: -1,
+          distributed: 1 
+        } 
+      },
+      { new: true }
+    );
 
     // Populate lead info before sending response
     await sale.populate('leadId', 'name email');

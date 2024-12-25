@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton
-} from '@clerk/nextjs'
+import { Toaster } from "@/components/ui/toaster"
+
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import Navbar from "@/components/Navbar";
 
@@ -39,6 +34,7 @@ export default function RootLayout({
       >
         <AuthProvider>
         <Navbar />
+        <Toaster />
         {children}
         </AuthProvider>
       </body>

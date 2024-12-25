@@ -68,6 +68,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [isGoogleUser, setIsGoogleUser] = useState(false)
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -93,6 +94,7 @@ export default function ProfilePage() {
         const data = await response.json()
         
         if (response.ok) {
+          setIsGoogleUser(Boolean(data.googleId));
           form.reset({
             name: data.name || '',
             email: data.email || '',
@@ -198,10 +200,14 @@ export default function ProfilePage() {
                           type="email" 
                           placeholder="john@example.com" 
                           {...field} 
-                          disabled 
+                          disabled={isGoogleUser}
                         />
                       </FormControl>
-                      <FormDescription>Email cannot be changed</FormDescription>
+                      <FormDescription>
+                        {isGoogleUser 
+                          ? "Email cannot be changed for Google accounts" 
+                          : "You can update your email address"}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

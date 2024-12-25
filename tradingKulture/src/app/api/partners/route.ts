@@ -4,12 +4,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/db'
 import User from '@/lib/models/User'
+import { Inventory } from '@/lib/models/Inventory'
+import { KitDistribution } from '@/lib/models/KitDistribution'
 
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    // Check if the user is an admin
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { message: 'Unauthorized' },
@@ -17,44 +18,53 @@ export async function GET(request: Request) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('id');
-
     await connectDB();
 
-    let users;
-    if (userId) {
-      // Fetch a specific user by ID
-      const user = await User.findById(userId)
-        .select('-password -googleId -emailVerified')
-        .lean();
+    // Fetch all partners (users)
+    const partners = await User.find({ role: { $ne: 'admin' } })
+      .select('-password -googleId -emailVerified')
+      .lean();
 
-        console.log(user);
+    // Fetch inventory data for all partners
+    const inventoryData = await Inventory.find({
+      partnerId: { $in: partners.map(p => p._id) }
+    }).lean();
 
-      if (!user) {
-        return NextResponse.json(
-          { message: 'User not found' },
-          { status: 404 }
-        );
+    // Fetch distribution data for all partners
+    const distributionData = await KitDistribution.find({
+      partnerId: { $in: partners.map(p => p._id) }
+    })
+    .sort({ distributionDate: -1 })
+    .lean();
+
+    // Create a map for quick lookup
+    const inventoryMap = new Map();
+    inventoryData.forEach(inv => {
+      const currentTotal = inventoryMap.get(inv.partnerId.toString()) || 0;
+      inventoryMap.set(inv.partnerId.toString(), currentTotal + inv.quantity + inv.distributed);
+    });
+
+    const distributionMap = new Map();
+    distributionData.forEach(dist => {
+      if (!distributionMap.has(dist.partnerId.toString())) {
+        distributionMap.set(dist.partnerId.toString(), dist.distributionDate);
       }
+    });
 
-      users = [user];
-    } else {
-      // Fetch all users
-      users = await User.find({})
-        .select('-password -googleId -emailVerified')
-        .lean();
-    }
+    // Combine the data
+    const enrichedPartners = partners.map(partner => {
+      const partnerId = partner._id.toString();
+      return {
+        ...partner,
+        totalKits: inventoryMap.get(partnerId) || 0,
+        lastDistribution: distributionMap.get(partnerId) || null,
+        roleDisplay: partner.role.charAt(0).toUpperCase() + partner.role.slice(1)
+      };
+    });
 
-    // Add formatted role display
-    const usersWithFormattedRole = users.map((user) => ({
-      ...user,
-      roleDisplay: user.role.charAt(0).toUpperCase() + user.role.slice(1),
-    }));
-
-    return NextResponse.json(usersWithFormattedRole);
+    return NextResponse.json(enrichedPartners);
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Error fetching partners:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -63,26 +73,22 @@ export async function GET(request: Request) {
 }
 
 // PUT update partner
-export async function PUT(
-  request: Request
-) {
+export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
-      )
+      );
     }
 
-    const data = await request.json()
-    console.log("Data is " + data);
+    const data = await request.json();
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('id');
 
-    await connectDB()
-
-    const { searchParams } = new URL(request.url)
-      const userId = searchParams.get('id')
+    await connectDB();
     
     const updatedPartner = await User.findOneAndUpdate(
       { _id: userId, role: { $ne: 'admin' } },
@@ -91,22 +97,22 @@ export async function PUT(
         new: true,
         select: '-password -googleId -emailVerified'
       }
-    )
+    );
 
     if (!updatedPartner) {
       return NextResponse.json(
         { message: 'Partner not found' },
         { status: 404 }
-      )
+      );
     }
 
-    return NextResponse.json(updatedPartner)
+    return NextResponse.json(updatedPartner);
   } catch (error) {
-    console.error('Error updating partner:', error)
+    console.error('Error updating partner:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
 }
 

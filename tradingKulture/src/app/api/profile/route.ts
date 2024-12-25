@@ -42,7 +42,8 @@ export async function GET() {
       city: user.city || '',
       state: user.state || '',
       pincode: user.pincode || '',
-      isProfileComplete: user.isProfileComplete || false
+      isProfileComplete: user.isProfileComplete || false,
+      googleId: user.googleId || null
     })
   } catch (error) {
     console.error('Profile fetch error:', error)
@@ -69,16 +70,34 @@ export async function PUT(request: Request) {
     const profileComplete = isProfileComplete(data)
 
     await connectDB()
+    
+    // First find the user to check if they're a Google user
+    const user = await User.findOne({ email: session.user.email })
+    if (!user) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Only allow email update if not a Google user
+    const updateData = {
+      name: data.name,
+      phoneNumber: data.phoneNumber,
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      isProfileComplete: profileComplete
+    }
+
+    // Add email to update only if user is not a Google user
+    if (!user.googleId && data.email) {
+      updateData.email = data.email
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { email: session.user.email },
-      {
-        name: data.name,
-        phoneNumber: data.phoneNumber,
-        city: data.city,
-        state: data.state,
-        pincode: data.pincode,
-        isProfileComplete: profileComplete 
-      },
+      updateData,
       { new: true }
     )
 
@@ -98,7 +117,8 @@ export async function PUT(request: Request) {
         city: updatedUser.city,
         state: updatedUser.state,
         pincode: updatedUser.pincode,
-        isProfileComplete: updatedUser.isProfileComplete
+        isProfileComplete: updatedUser.isProfileComplete,
+        googleId: updatedUser.googleId || null
       }
     })
   } catch (error) {

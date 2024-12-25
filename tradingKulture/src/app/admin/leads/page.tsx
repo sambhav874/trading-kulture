@@ -6,33 +6,163 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Upload, File, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const UserSelectItem = ({ user }: { user: any }) => (
-  <div className="py-2 px-4 border-b border-gray-200 hover:bg-gray-100 transition duration-150 ease-in-out">
+  <div className="py-2 px-4 hover:bg-accent transition duration-150 ease-in-out">
     <div className="font-semibold text-lg">{user.name}</div>
-    <div className="text-sm text-gray-600 flex flex-wrap space-x-4 mt-1">
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-        📱 {user.phoneNumber}
-      </span>
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        ✉️ {user.email}
-      </span>
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-        🏠 {user.city}
-      </span>
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-        🗺️ {user.state}
-      </span>
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-        📍 {user.pincode}
-      </span>
+    <div className="flex flex-wrap gap-2 mt-1">
+      <Badge variant="secondary"> {user.phoneNumber}</Badge>
+      <Badge variant="secondary"> {user.email}</Badge>
+      <Badge variant="secondary"> {user.city}</Badge>
+      <Badge variant="secondary"> {user.state}</Badge>
+      <Badge variant="secondary"> {user.pincode}</Badge>
     </div>
   </div>
 );
 
+const LeadStatusBadge = ({ status }: { status: string }) => {
+  const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    new: "default",
+    contacted: "secondary",
+    successful: "outline",
+    lost: "destructive"
+  };
+
+  return (
+    <Badge variant={variants[status] || "default"}>
+      {status}
+    </Badge>
+  );
+};
+
+const FileUploadZone = ({ onFileSelect, uploading }: { onFileSelect: (file: File) => void, uploading: boolean }) => {
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    handleFile(file);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    handleFile(file);
+  };
+
+  const handleFile = (file: File | undefined) => {
+    if (!file) return;
+    
+    const fileType = file.name.split('.').pop()?.toLowerCase();
+    if (fileType !== 'csv' && fileType !== 'xlsx') {
+      alert('Please upload a CSV or Excel file');
+      return;
+    }
+
+    setSelectedFile(file);
+    onFileSelect(file);
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="w-full">
+      <div
+        className={cn(
+          "relative rounded-lg border-2 border-dashed p-6 transition-all",
+          dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+          selectedFile ? "bg-muted/50" : "hover:bg-muted/50"
+        )}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".csv,.xlsx"
+          onChange={handleChange}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          disabled={uploading}
+        />
+        
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          {selectedFile ? (
+            <>
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                <File className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{selectedFile.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-auto p-0 hover:bg-transparent"
+                  onClick={removeFile}
+                  disabled={uploading}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                <Upload className="w-6 h-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Drag & drop your file here or click to browse
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Supports CSV and Excel files
+                </p>
+              </div>
+            </>
+          )}
+          
+          {uploading && (
+            <div className="flex items-center gap-2 text-sm text-primary">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Uploading...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LeadPage = () => {
   const [leads, setLeads] = useState([]);
   const [users, setUsers] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     mobileNo: '',
@@ -113,9 +243,32 @@ const LeadPage = () => {
   };
 
   const getUserDisplayName = (assignedTo: any) => {
-    if (!assignedTo) return 'Not Assigned';
-    
-    return `${assignedTo.name} ,${assignedTo.phoneNumber} `;
+    if (!assignedTo || !assignedTo.name) return 'Not Assigned';
+    return `${assignedTo.name}${assignedTo.phoneNumber ? `, ${assignedTo.phoneNumber}` : ''}`;
+  };
+
+  const handleFileUpload = async (formData: FormData) => {
+    setUploading(true);
+    try {
+      const response = await fetch('/api/leads/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Successfully uploaded ${result.count} leads`);
+        fetchLeads(); // Refresh the leads list
+      } else {
+        const error = await response.json();
+        alert(`Error uploading file: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -125,6 +278,19 @@ const LeadPage = () => {
           <CardTitle>Add New Lead</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-6 space-y-4">
+            <Label className="text-base font-semibold">Upload CSV/Excel File</Label>
+            <FileUploadZone onFileSelect={(file) => {
+              const formData = new FormData();
+              formData.append('file', file);
+              handleFileUpload(formData);
+            }} uploading={uploading} />
+            <Alert>
+              <AlertDescription>
+                Upload a CSV or Excel file with columns: name, mobileNo, email, city, platform
+              </AlertDescription>
+            </Alert>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Input
@@ -215,8 +381,14 @@ const LeadPage = () => {
                     <TableCell>{lead.email}</TableCell>
                     <TableCell>{lead.city}</TableCell>
                     <TableCell>{lead.platform}</TableCell>
-                    <TableCell>{lead.status}</TableCell>
-                    <TableCell>{getUserDisplayName(lead.assignedTo)}</TableCell>
+                    <TableCell>
+                      <LeadStatusBadge status={lead.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal">
+                        {getUserDisplayName(lead.assignedTo)}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Dialog>
                         <DialogTrigger asChild>
@@ -243,7 +415,7 @@ const LeadPage = () => {
                               </SelectContent>
                             </Select>
                             <Select
-                              defaultValue={lead.assignedTo._id}
+                              defaultValue={lead.assignedTo?._id || ''}
                               onValueChange={(value) => handleUpdate(lead._id, { assignedTo: value })}
                             >
                               <SelectTrigger>
@@ -277,4 +449,3 @@ const LeadPage = () => {
 };
 
 export default LeadPage;
-

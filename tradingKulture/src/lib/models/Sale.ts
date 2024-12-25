@@ -1,23 +1,57 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
-const SaleSchema = new mongoose.Schema({
+const saleSchema = new mongoose.Schema({
   leadId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Lead',
     required: true,
   },
-  quantity: Number,
+  quantity: {
+    type: Number,
+    required: true,
+    default: 1
+  },
   amount: Number,
   partnerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
-  date: {
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'cancelled'],
+    default: 'pending'
+  },
+  createdAt: {
     type: Date,
-    default: Date.now,
-  },
-})
+    default: Date.now
+  }
+});
 
-export default mongoose.models.Sale || mongoose.model('Sale', SaleSchema)
+// Middleware to update inventory after sale
+saleSchema.post('save', async function(doc) {
+  try {
+    const inventory = await mongoose.model('Inventory').findOne({
+      partnerId: doc.partnerId,
+      status: 'available'
+    });
 
+    if (inventory) {
+      inventory.quantity -= doc.quantity;
+      inventory.distributed += doc.quantity;
+      
+      if (inventory.quantity < 0) {
+        throw new Error('Insufficient inventory');
+      }
+      
+      await inventory.save();
+    }
+  } catch (error) {
+    console.error('Error updating inventory after sale:', error);
+    throw error;
+  }
+});
+
+const Sale = mongoose.models.Sale || mongoose.model('Sale', saleSchema);
+
+export { Sale };
