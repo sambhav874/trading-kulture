@@ -32,25 +32,25 @@ export default function EditPartner() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
       return
     }
 
     const fetchPartner = async () => {
       try {
-        const response = await fetch(`/api/partners?id=${params.id}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${params.id}`)
         const data = await response.json()
         
         if (response.ok && data.length > 0) {
           setPartner(data[0])
         } else {
           alert('Error fetching partner details')
-          router.push('/admin/business-partners/')
+          router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
         }
       } catch (error) {
         console.error('Error fetching partner:', error)
         alert('Error fetching partner details')
-        router.push('/admin/business-partners/')
+        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
       } finally {
         setLoading(false)
       }
@@ -66,7 +66,7 @@ export default function EditPartner() {
     setSaving(true)
   
     try {
-      const response = await fetch(`/api/partners?id=${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export default function EditPartner() {
   
       if (response.ok) {
         alert('Partner updated successfully')
-        router.push('/admin/business-partners/')
+        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
       } else {
         alert(data.message || 'Error updating partner')
       }
@@ -178,7 +178,7 @@ export default function EditPartner() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push('/users')}
+                onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners`)}
               >
                 Cancel
               </Button>

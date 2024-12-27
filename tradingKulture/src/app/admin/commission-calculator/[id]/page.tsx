@@ -66,7 +66,7 @@ const CommissionCalculatorPage = () => {
   const fetchCommissionData = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/commissions/calculate?partnerId=${partnerId}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/commissions/calculate?partnerId=${partnerId}`)
       if (!response.ok) {
         throw new Error('Failed to fetch commission data')
       }

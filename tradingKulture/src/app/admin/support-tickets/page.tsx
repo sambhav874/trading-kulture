@@ -32,7 +32,7 @@ const SupportTicketsPage = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch('/api/support');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/support`);
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
@@ -52,7 +52,7 @@ const SupportTicketsPage = () => {
     }
 
     try {
-      const response = await fetch(`/api/support?id=${ticketId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/support?id=${ticketId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reply }),

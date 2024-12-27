@@ -19,7 +19,7 @@ export default function AdminDashboard() {
   }
 
   if (!session || session.user.role !== 'admin') {
-    router.push('/auth/signin')
+    router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
     return null
   }
 
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       title: 'Manage Partners',
       description: 'View and manage business partners, their profiles, and permissions',
       icon: Users,
-      route: '/admin/business-partners',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners`,
       stats: 'View all partners',
       color: 'bg-blue-500'
     },
@@ -36,23 +36,23 @@ export default function AdminDashboard() {
       title: 'Add Leads',
       description: 'Adding leads generated via social media',
       icon: UserPlus,
-      route: 'admin/leads',
-      stats: 'Add partner',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/leads`,
+      stats: 'Add leads',
       color: 'bg-green-500'
     },
     {
       title: 'Kits and Inventory',
       description: 'Managing Inventory and Kits with respect to the partner',
       icon: Users,
-      route: '/admin/kits-inventory',
-      stats: 'Add partner',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/kits-inventory`,
+      stats: 'Send Kits , Approve Kit Requests',
       color: 'bg-green-500'
     },
     {
       title: 'Partner Analytics',
       description: 'View performance metrics and analytics',
       icon: BarChart,
-      route: '/admin/partner-stats',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/partner-stats`,
       stats: 'View analytics',
       color: 'bg-purple-500'
     },
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
       title: 'Commissions Slabs',
       description: 'Manage commissions slabs for business partners',
       icon: Settings,
-      route: '/admin/commissions',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/commissions`,
       stats: 'View Slabs',
       color: 'bg-red-500'
     },
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       title: 'Commissions Calculator',
       description: 'Calculate the commissions for business partners',
       icon: Shield,
-      route: '/admin/commission-calculator',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/commission-calculator`,
       stats: 'View Commissions',
       color: 'bg-gray-500'
     },
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
       title: 'Support Tickets',
       description: 'Reply to support tickets',
       icon: Bell,
-      route: '/admin/support-tickets',
+      route: `${process.env.NEXT_PUBLIC_API_URL}/admin/support-tickets`,
       stats: 'View tickets',
       color: 'bg-yellow-500'
     },

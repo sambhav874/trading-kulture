@@ -37,7 +37,7 @@ const SupportPage = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch('/api/support')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/support`)
       if (!response.ok) {
         throw new Error('Failed to fetch tickets')
       }
@@ -55,7 +55,7 @@ const SupportPage = () => {
     setSuccess('')
 
     try {
-      const response = await fetch('/api/support', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/support`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject, message }),
@@ -142,15 +142,15 @@ const SupportPage = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5" />
-                <span>support@example.com</span>
+                <span>TradingKulture</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5" />
-                <span>+1 (555) 123-4567</span>
+                <span>+9999999999</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5" />
-                <span>123 Support Street, City, Country</span>
+                <span>Jodhpur , India</span>
               </div>
             </div>
           </CardContent>

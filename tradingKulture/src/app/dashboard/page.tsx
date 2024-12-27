@@ -129,14 +129,14 @@ export default function Dashboard() {
 
   if (status === 'loading') return <div>Loading...</div>;
   if (!session) {
-    router.push('/auth/signin');
+    router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`);
     return null;
   }
 
   const fetchCommissionData = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/commissions/calculate?partnerId=${session?.user.id}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/commissions/calculate?partnerId=${session?.user.id}`)
       if (!response.ok) {
         throw new Error('Failed to fetch commission data')
       }
@@ -230,7 +230,7 @@ export default function Dashboard() {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch('/api/leads?id=' + session.user.id);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads?id=` + session.user.id);
       const data = await response.json();
       setLeads(data);
     } catch (error) {
@@ -240,7 +240,7 @@ export default function Dashboard() {
 
   const fetchSales = async () => {
     try {
-      const response = await fetch('/api/sales?partnerId=' + session.user.id);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales?partnerId=` + session.user.id);
       const data = await response.json();
       setSales(data);
     } catch (error) {
@@ -250,7 +250,7 @@ export default function Dashboard() {
 
   const fetchKits = async () => {
     try {
-      const response = await fetch('/api/kits-distribution?partnerId=' + session.user.id);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kits-distribution?partnerId=` + session.user.id);
       const data = await response.json();
       if (response.ok) {
         setKits(data.inventory || { available: 0, total: 0, distributed: 0 });
@@ -264,7 +264,7 @@ export default function Dashboard() {
 
   const fetchKitHistory = async () => {
     try {
-      const response = await fetch('/api/kits-distribution/request?partnerId=' + session.user.id);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kits-distribution/request?partnerId=` + session.user.id);
       const data = await response.json();
       if (response.ok) {
         setKitHistory(data.requests || []);
@@ -276,7 +276,7 @@ export default function Dashboard() {
 
   const fetchReceivedKits = async () => {
     try {
-      const response = await fetch('/api/kit-distribution?partnerId='+session.user.id, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kit-distribution?partnerId=` + session.user.id, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -291,7 +291,7 @@ export default function Dashboard() {
 
   const handleStatusUpdate = async (leadId : any, newStatus : any)  => {
     try {
-      const response = await fetch(`/api/leads?id=${leadId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads?id=${leadId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -306,7 +306,7 @@ export default function Dashboard() {
 
   const handleSaleRecord = async (leadId : any, formData : any) => {
     try {
-      const response = await fetch('/api/sales', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -332,7 +332,7 @@ export default function Dashboard() {
   const handleKitRequest = async (formData : any) => {
     setRequestLoading(true);
     try {
-      const response = await fetch('/api/kits-distribution/request', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kits-distribution/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +360,7 @@ export default function Dashboard() {
 
   const handleUpdateSubscription = async (leadId : any, formData : any) => {
     try {
-      const response = await fetch('/api/sales?id=' + leadId, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales?id=` + leadId, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

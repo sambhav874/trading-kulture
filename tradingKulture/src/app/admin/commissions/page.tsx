@@ -36,7 +36,7 @@ const CommissionPage = () => {
   const fetchCommissions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/commissions');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/commissions`);
       if (!response.ok) {
         throw new Error('Failed to fetch commissions');
       }
@@ -77,7 +77,7 @@ const CommissionPage = () => {
     };
 
     try {
-      const response = await fetch(`/api/commissions?id=${partnerId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/commissions?id=${partnerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slabs: updatedSlabs }),

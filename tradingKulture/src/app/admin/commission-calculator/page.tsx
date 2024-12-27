@@ -33,7 +33,7 @@ const PartnerSalesPage = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/commissions/stats');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/commissions/stats`);
       if (!response.ok) {
         throw new Error('Failed to fetch stats');
       }
@@ -161,7 +161,7 @@ const PartnerSalesPage = () => {
               </TableCell>
               <TableCell>
                 <Button 
-                  onClick={() => router.push(`/admin/commission-calculator/${partner.partnerId}`)}
+                  onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/commission-calculator/${partner.partnerId}`)}
                 >
                   View Calculator
                 </Button>

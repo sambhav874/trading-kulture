@@ -52,12 +52,12 @@ export function PartnerStatsContent() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
       return
     }
 
     if (session?.user?.role !== 'admin') {
-      router.push('/dashboard')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`)
       return
     }
 
@@ -68,11 +68,11 @@ export function PartnerStatsContent() {
     try {
       const partnerId = searchParams.get('id')
       if (!partnerId) {
-        router.push('/admin/partner-stats')
+        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/partner-stats`)
         return
       }
 
-      const response = await fetch(`/api/partners/stats?partnerId=${partnerId}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners/stats?partnerId=${partnerId}`)
       const data = await response.json()
       
       if (response.ok) {
@@ -93,7 +93,7 @@ export function PartnerStatsContent() {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">Partner not found</h1>
-        <Button onClick={() => router.push('/admin/partner-stats')}>
+        <Button onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/partner-stats`)}>
           Back to Partners
         </Button>
       </div>
@@ -104,7 +104,7 @@ export function PartnerStatsContent() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Partner Analysis: {stats.name}</h1>
-        <Button onClick={() => router.push('/admin/partner-stats')}>
+        <Button onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/partner-stats`)}>
           Back to Partners
         </Button>
       </div>

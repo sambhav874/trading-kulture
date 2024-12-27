@@ -119,8 +119,8 @@ export const authConfig: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
+    signIn: `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`,
+    error: `${process.env.NEXT_PUBLIC_API_URL}/auth/error`,
   },
   session: {
     strategy: 'jwt',

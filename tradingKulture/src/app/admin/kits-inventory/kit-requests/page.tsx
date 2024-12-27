@@ -54,7 +54,7 @@ export default function KitRequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch('/api/kits-distribution/request');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kits-distribution/request`);
       if (!response.ok) {
         throw new Error('Failed to fetch requests');
       }
@@ -69,7 +69,7 @@ export default function KitRequestsPage() {
 
   const handleStatusUpdate = async (requestId: string, newStatus: string) => {
     try {
-      const response = await fetch('/api/kits-distribution/request', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kits-distribution/request`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

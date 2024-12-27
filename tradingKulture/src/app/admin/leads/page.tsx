@@ -272,7 +272,7 @@ const LeadPage = () => {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch('/api/leads');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads`);
       const data = await response.json();
       setLeads(data);
     } catch (error) {
@@ -282,7 +282,7 @@ const LeadPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/partners');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners`);
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -293,7 +293,7 @@ const LeadPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/leads', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -316,7 +316,7 @@ const LeadPage = () => {
 
   const handleUpdate = async (leadId: string, updatedData: any) => {
     try {
-      const response = await fetch(`/api/leads?id=${leadId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads?id=${leadId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
@@ -340,7 +340,7 @@ const LeadPage = () => {
   const handleFileUpload = async (formData: FormData) => {
     setUploading(true);
     try {
-      const response = await fetch('/api/leads/upload', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads/upload`, {
         method: 'POST',
         body: formData,
       });

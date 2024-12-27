@@ -53,12 +53,12 @@ export default function UsersList() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
     }
 
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/partners')
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners`)
         const data = await response.json()
         
         if (response.ok) {
@@ -82,7 +82,7 @@ export default function UsersList() {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         setLoading(true) // Add loading state
-        const response = await fetch(`/api/partners?id=${userId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${userId}`, {
           method: 'DELETE'
         })
         
@@ -104,7 +104,7 @@ export default function UsersList() {
 
   const handleAddUser = async () => {
     try {
-      const response = await fetch('/api/partners', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -257,7 +257,7 @@ export default function UsersList() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => router.push(`/admin/business-partners/${user._id}`)}
+                            onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/${user._id}`)}
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit

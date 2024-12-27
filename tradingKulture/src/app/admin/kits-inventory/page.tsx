@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label'
 import { useSession } from 'next-auth/react'
 import { useToast } from "@/hooks/use-toast"
+import Link from 'next/link'
 
 export default function KitsAndInventory() {
   const { data: session } = useSession()
@@ -29,7 +30,7 @@ export default function KitsAndInventory() {
 
   const fetchPartners = async () => {
     try {
-      const response = await fetch('/api/partners')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners`)
       const data = await response.json()
       setPartners(data)
     } catch (error) {
@@ -46,7 +47,7 @@ export default function KitsAndInventory() {
 
   const fetchInventory = async (partnerId = null) => {
     try {
-      const url = partnerId ? `/api/inventory?partnerId=${partnerId}` : '/api/inventory'
+      const url = partnerId ? `${process.env.NEXT_PUBLIC_API_URL}/api/inventory?partnerId=${partnerId}` : `${process.env.NEXT_PUBLIC_API_URL}/api/inventory`
       const response = await fetch(url)
       const data = await response.json()
       setInventory(data)
@@ -62,7 +63,7 @@ export default function KitsAndInventory() {
 
   const fetchDistributions = async () => {
     try {
-      const response = await fetch('/api/kit-distribution');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kit-distribution`);
       const data = await response.json();
       setDistributions(data);
     } catch (error) {
@@ -77,7 +78,7 @@ export default function KitsAndInventory() {
 
   const handleKitDistribution = async (partnerId : any, formData : any) => {
     try {
-      const response = await fetch('/api/kit-distribution', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kit-distribution`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +211,11 @@ export default function KitsAndInventory() {
           </Table>
         </CardContent>
       </Card>
-
+      <Link href={`${process.env.NEXT_PUBLIC_API_URL}/admin/kits-inventory/kit-requests`}>
+        <Button className="mt-4">
+          View Kit Requests
+        </Button>
+      </Link>
       <div className="mt-8">
         <Card>
           <CardHeader>

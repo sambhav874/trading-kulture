@@ -33,12 +33,12 @@ export default function PartnerStats() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
       return
     }
 
     if (session?.user?.role !== 'admin') {
-      router.push('/dashboard')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`)
       return
     }
 
@@ -47,7 +47,7 @@ export default function PartnerStats() {
 
   const fetchPartners = async () => {
     try {
-      const response = await fetch('/api/partners')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners`)
       const data = await response.json()
       console.log(data)
       
@@ -55,7 +55,7 @@ export default function PartnerStats() {
         // Transform the data to include statistics
         const partnersWithStats = await Promise.all(
           data.map(async (partner: any) => {
-            const statsResponse = await fetch(`/api/partners/stats?partnerId=${partner._id}`)
+            const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners/stats?partnerId=${partner._id}`)
             const stats = await statsResponse.json()
             
             return {
@@ -130,7 +130,7 @@ export default function PartnerStats() {
                   <TableCell className="text-right">
                     <Button
                       variant="outline"
-                      onClick={() => router.push(`/admin/partner-stats/analysis?id=${partner.id}`)}
+                      onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/partner-stats/analysis?id=${partner.id}`)}
                     >
                       Analyze
                     </Button>

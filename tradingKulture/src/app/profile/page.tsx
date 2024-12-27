@@ -84,13 +84,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`)
       return
     }
 
     const fetchUserData = async () => {
       try {
-        const response = await fetch('/api/profile')
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`)
         const data = await response.json()
         
         if (response.ok) {
@@ -121,7 +121,7 @@ export default function ProfilePage() {
     setSuccess('')
 
     try {
-      const response = await fetch('/api/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -129,7 +129,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         setSuccess('Profile updated successfully!')
-        setTimeout(() => router.push('/dashboard'), 2000)
+        setTimeout(() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`), 2000)
       } else {
         const data = await response.json()
         setError(data.message || 'Failed to update profile')
