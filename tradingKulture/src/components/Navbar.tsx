@@ -3,109 +3,92 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Menu, X, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="font-bold text-xl">BMS</span>
+              <span className="font-bold text-xl text-gray-700">Trading<span className="text-green-500">Kulture</span></span>
             </Link>
           </div>
 
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             {session ? (
               <>
                 {session.user.role === 'admin' && (
-                  <Link
-                    href="/admin/dashboard"
-                    className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Admin Dashboard
+                  <Link href="/admin/dashboard" passHref>
+                    <Button variant="ghost">Admin Dashboard</Button>
                   </Link>
                 )}
                 {session.user.role === 'partner' && (
-                  <Link
-                    href="/dashboard"
-                    className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Partner Dashboard
+                  <Link href="/dashboard" passHref>
+                    <Button variant="ghost">Partner Dashboard</Button>
                   </Link>
                 )}
-                <button
-                  onClick={() => signOut()}
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Sign out
-                </button>
-                <div className="flex items-center">
-                  {session.user.image ? (
-                    <img
-                      src={session.user.image}
-                      alt="Profile"
-                      className="h-8 w-8 rounded-full"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-600">
-                        {session.user.name?.[0] || session.user.email?.[0]}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <Link href="/profile" passHref>
+                  <Button variant="ghost">Profile</Button>
+                </Link>
+                {session.user.role === 'partner' && (
+                  <Link href="/support" passHref>
+                    <Button variant="ghost">Support</Button>
+                  </Link>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center space-x-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                        <AvatarFallback>{session.user.name?.[0] || session.user.email?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{session.user.name || session.user.email}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => signOut()}>
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
-              <Link
-                href="/auth/signin"
-                className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Sign in
+              <Link href="/auth/signin" passHref>
+                <Button variant="default">Sign in</Button>
               </Link>
             )}
           </div>
 
           <div className="flex items-center sm:hidden">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-label="Toggle menu"
             >
-              <span className="sr-only">Open main menu</span>
-              {/* Menu icon */}
-              <svg
-                className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {/* Close icon */}
-              <svg
-                className={`${isMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -116,34 +99,34 @@ export default function Navbar() {
           {session ? (
             <>
               {session.user.role === 'admin' && (
-                <Link
-                  href="/admin/dashboard"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-gray-700 hover:bg-gray-50"
-                >
-                  Admin Dashboard
+                <Link href="/admin/dashboard" passHref>
+                  <Button variant="ghost" className="w-full justify-start">Admin Dashboard</Button>
                 </Link>
               )}
               {session.user.role === 'partner' && (
-                <Link
-                  href="/dashboard"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-gray-700 hover:bg-gray-50"
-                >
-                  Partner Dashboard
+                <Link href="/dashboard" passHref>
+                  <Button variant="ghost" className="w-full justify-start">Partner Dashboard</Button>
                 </Link>
               )}
-              <button
+              <Link href="/profile" passHref>
+                <Button variant="ghost" className="w-full justify-start">Profile</Button>
+              </Link>
+              {session.user.role === 'partner' && (
+                <Link href="/support" passHref>
+                  <Button variant="ghost" className="w-full justify-start">Support</Button>
+                </Link>
+              )}
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
                 onClick={() => signOut()}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-gray-700 hover:bg-gray-50"
               >
                 Sign out
-              </button>
+              </Button>
             </>
           ) : (
-            <Link
-              href="/auth/signin"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-gray-700 hover:bg-gray-50"
-            >
-              Sign in
+            <Link href="/auth/signin" passHref>
+              <Button variant="default" className="w-full">Sign in</Button>
             </Link>
           )}
         </div>
@@ -151,3 +134,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

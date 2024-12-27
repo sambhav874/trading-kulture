@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authConfig } from '../../auth/[...nextauth]/auth'
 import connectDB from '@/lib/db'
 import User from '@/lib/models/User'
 import Lead from '@/lib/models/Lead'
@@ -8,7 +8,7 @@ import { Sale } from '@/lib/models/Sale'
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authConfig)
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { message: 'Unauthorized' },

@@ -1,41 +1,33 @@
-'use client'
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+'use client';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 
-export default function SalesChart({ sales }) {
-  const monthlySales = sales.reduce((acc, sale) => {
+export default function SalesChart({ sales }: { sales: { createdAt: string; amount: number }[] }) {
+  // Process sales data to group by month and year
+  const monthlySales = sales.reduce((acc: Record<string, number>, sale: { createdAt: string; amount: number }) => {
     const date = new Date(sale.createdAt);
-    const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-    acc[monthYear] = (acc[monthYear] || 0) + sale.amount;
+    const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`; // Format as MM/YYYY
+    acc[monthYear] = (acc[monthYear] || 0) + sale.amount; // Aggregate sales amount
     return acc;
   }, {});
 
-  const data = {
-    labels: Object.keys(monthlySales),
-    datasets: [
-      {
-        label: 'Monthly Sales',
-        data: Object.values(monthlySales),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      }
-    ]
-  };
+  // Transform data into an array suitable for Recharts
+  const chartData = Object.entries(monthlySales).map(([monthYear, amount]) => ({
+    monthYear,
+    amount,
+  }));
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Monthly Sales Overview'
-      }
-    }
-  };
-
-  return <Bar options={options} data={data} />;
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="monthYear" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="amount" fill="rgba(75, 192, 192, 0.6)" name="Monthly Sales" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
 }
-

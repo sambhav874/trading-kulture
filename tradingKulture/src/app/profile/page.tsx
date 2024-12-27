@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import {useForm} from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -178,7 +178,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="name"
-                  render={({ field }) => (
+                  render={({ field }  : any) => (
                     <FormItem>
                       <FormLabel>Full Name *</FormLabel>
                       <FormControl>
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="email"
-                  render={({ field }) => (
+                  render={({ field } : any) => (
                     <FormItem>
                       <FormLabel>Email *</FormLabel>
                       <FormControl>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="phoneNumber"
-                  render={({ field }) => (
+                  render={({ field } : any) => (
                     <FormItem>
                       <FormLabel>Phone Number *</FormLabel>
                       <FormControl>
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="city"
-                  render={({ field }) => (
+                  render={({ field } : any) => (
                     <FormItem>
                       <FormLabel>City *</FormLabel>
                       <FormControl>
@@ -244,7 +244,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="state"
-                  render={({ field }) => (
+                  render={({ field } : any) => (
                     <FormItem>
                       <FormLabel>State *</FormLabel>
                       <FormControl>
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="pincode"
-                  render={({ field }) => (
+                  render={({ field } : any) => (
                     <FormItem>
                       <FormLabel>Pincode *</FormLabel>
                       <FormControl>

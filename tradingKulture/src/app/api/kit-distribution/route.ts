@@ -60,12 +60,20 @@ export async function POST(request: NextRequest) {
       distribution: populatedDistribution,
       inventory
     }, { status: 200 });
-  } catch (error) {
-    console.error('Error in kit distribution:', error);
-    return NextResponse.json({ 
-      message: 'Error processing kit distribution',
-      error: error.message 
-    }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error in kit distribution:', error);
+      return NextResponse.json({ 
+        message: 'Error processing kit distribution',
+        error: error.message 
+      }, { status: 500 });
+    } else {
+      console.error('Unexpected error:', error);
+      return NextResponse.json({ 
+        message: 'Unexpected error processing kit distribution',
+        error: 'An unexpected error occurred' 
+      }, { status: 500 });
+    }
   }
 }
 
@@ -95,10 +103,18 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(formattedDistributions, { status: 200 });
-  } catch (error) {
-    console.error('Error fetching distributions:', error);
-    return NextResponse.json({ 
-      message: 'Error fetching distribution history' 
-    }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error fetching distributions:', error);
+      return NextResponse.json({ 
+        message: 'Error fetching distribution history' 
+      }, { status: 500 });
+    } else {
+      console.error('Unexpected error:', error);
+      return NextResponse.json({ 
+        message: 'Unexpected error fetching distribution history',
+        error: 'An unexpected error occurred' 
+      }, { status: 500 });
+    }
   }
 }

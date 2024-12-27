@@ -36,13 +36,20 @@ import {
   Shield,
   Users
 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {toast} from '@/hooks/use-toast'
+import {User} from '@/types/index'
+
 
 export default function UsersList() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [users, setUsers] = useState([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [newUserEmail, setNewUserEmail] = useState('')
+  const [newUserPassword, setNewUserPassword] = useState('')
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -80,7 +87,7 @@ export default function UsersList() {
         })
         
         if (response.ok) {
-          setUsers(prevUsers => prevUsers.filter(user => user._id !== userId))
+          setUsers(prevUsers => prevUsers.filter((user  : any) => user._id !== userId))
           // Optional: Add success toast/message here
         } else {
           const data = await response.json()
@@ -95,14 +102,44 @@ export default function UsersList() {
     }
   }
 
-  
-  const filteredUsers = users.filter(user =>
+  const handleAddUser = async () => {
+    try {
+      const response = await fetch('/api/partners', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          password: newUserPassword
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+
+      const newUser = await response.json();
+      setUsers(prevUsers  => [...prevUsers, newUser]);
+      setIsDialogOpen(false); // Close the dialog
+      setNewUserEmail('');
+      setNewUserPassword('');
+      toast({
+        title: 'Success',
+        description: 'User created successfully',
+      });
+    } catch (error  : any) {
+      console.error('Error adding user:', error);
+      alert(error.message || 'Failed to create user');
+    }
+  }
+
+  const filteredUsers = users.filter((user  : any) =>
     (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (user.city?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (user.roleDisplay?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
-
 
   if (loading) {
     return (
@@ -120,13 +157,33 @@ export default function UsersList() {
             <h1 className="text-3xl font-bold text-gray-900">Users</h1>
             <p className="text-gray-600 mt-1">Manage system users and business partners</p>
           </div>
-          <Button
-            onClick={() => router.push('/users/new')}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add New User
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add New User
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New User</DialogTitle>
+              </DialogHeader>
+              <Input
+                placeholder="Email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                className="mb-4"
+              />
+              <Input
+                type="password"
+                placeholder="Password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                className="mb-4"
+              />
+              <Button onClick={handleAddUser} className="w-full">Create User</Button>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Card>
@@ -158,7 +215,7 @@ export default function UsersList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {filteredUsers.map((user  : any) => (
                   <TableRow key={user._id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authConfig } from '../../auth/[...nextauth]/auth';
 import connectDB from '@/lib/db';
 import Lead from '@/lib/models/Lead';
 import { read, utils } from "xlsx";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Validate data structure
     const requiredFields = ['name', 'mobileNo', 'email', 'city', 'platform'];
-    const isValidData = data.every(row => 
+    const isValidData = data.every((row : any )=> 
       requiredFields.every(field => field in row)
     );
     console.log('isValidData:', isValidData);
@@ -49,11 +49,16 @@ export async function POST(request: NextRequest) {
 
     // Create leads
     const leads = await Lead.insertMany(
-      data.map(row => ({
-        ...row,
-        status: 'new',
-        date: new Date()
-      }))
+      data.map(row => {
+        if (typeof row === 'object' && row !== null) {
+          return {
+            ...row,
+            status: 'new',
+            date: new Date()
+          };
+        }
+        throw new Error('Invalid row data');
+      })
     );
 
     return NextResponse.json({

@@ -75,7 +75,7 @@ export default function KitsAndInventory() {
     }
   };
 
-  const handleKitDistribution = async (partnerId, formData) => {
+  const handleKitDistribution = async (partnerId : any, formData : any) => {
     try {
       const response = await fetch('/api/kit-distribution', {
         method: 'POST',
@@ -102,7 +102,7 @@ export default function KitsAndInventory() {
         const errorData = await response.json()
         throw new Error(errorData.message || 'Failed to distribute kits')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error distributing kits:', error)
       toast({
         title: "Error",
@@ -144,7 +144,7 @@ export default function KitsAndInventory() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {partners.map((partner) => (
+              {partners.map((partner : any) => (
                 <TableRow key={partner._id}>
                   <TableCell className="font-medium">{partner.name}</TableCell>
                   <TableCell>{partner.totalKits  || 0}</TableCell>
@@ -165,7 +165,7 @@ export default function KitsAndInventory() {
                           <DialogTitle>Send Kits to {partner.name}</DialogTitle>
                         </DialogHeader>
                         <form
-                          onSubmit={(e) => {
+                          onSubmit={(e : any) => {
                             e.preventDefault()
                             handleKitDistribution(partner._id, {
                               quantity: e.target.quantity.value,
@@ -229,7 +229,7 @@ export default function KitsAndInventory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {distributions.map((dist) => (
+                {distributions.map((dist : any) => (
                   <TableRow key={dist._id}>
                     <TableCell>{dist.partnerId?.name || 'Unknown Partner'}</TableCell>
                     <TableCell>{dist.quantity}</TableCell>

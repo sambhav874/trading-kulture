@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -28,24 +27,26 @@ interface PartnerStats {
   name: string
   email: string
   totalLeadsAssigned: number
-  totalLeads: number
   totalSales: number
   revenue: number
   monthlyStats: {
     month: string
     leadsAssigned: number
-    leads: number
+    sales: number
+    revenue: number
+  }[]
+  yearlyStats: {
+    year: string
+    leadsAssigned: number
     sales: number
     revenue: number
   }[]
 }
-interface PageProps {
-  params: Promise<{ id: string }>
-}
 
-export default function PartnerAnalysis({ params }: PageProps) {
+export function PartnerStatsContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [stats, setStats] = useState<PartnerStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -55,15 +56,23 @@ export default function PartnerAnalysis({ params }: PageProps) {
       return
     }
 
-   
+    if (session?.user?.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
 
     fetchPartnerStats()
-  }, [session, status, router, params])
+  }, [session, status, router, searchParams])
 
   const fetchPartnerStats = async () => {
     try {
-      const { id } = await params
-      const response = await fetch(`/api/partners/stats?partnerId=${id}`)
+      const partnerId = searchParams.get('id')
+      if (!partnerId) {
+        router.push('/admin/partner-stats')
+        return
+      }
+
+      const response = await fetch(`/api/partners/stats?partnerId=${partnerId}`)
       const data = await response.json()
       
       if (response.ok) {
@@ -77,17 +86,7 @@ export default function PartnerAnalysis({ params }: PageProps) {
   }
 
   if (loading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <Skeleton className="h-8 w-[300px]" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <Skeleton className="h-[400px]" />
-      </div>
-    )
+    return null // The loading state is handled by the Suspense boundary
   }
 
   if (!stats) {
@@ -117,15 +116,6 @@ export default function PartnerAnalysis({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalLeadsAssigned}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalLeads}</div>
           </CardContent>
         </Card>
 
@@ -161,7 +151,26 @@ export default function PartnerAnalysis({ params }: PageProps) {
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="leadsAssigned" name="Leads Assigned" fill="#8884d8" />
-                <Bar dataKey="leads" name="Total Leads" fill="#82ca9d" />
+                <Bar dataKey="sales" name="Sales" fill="#ffc658" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Yearly Performance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.yearlyStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="leadsAssigned" name="Leads Assigned" fill="#8884d8" />
                 <Bar dataKey="sales" name="Sales" fill="#ffc658" />
               </BarChart>
             </ResponsiveContainer>
@@ -179,7 +188,6 @@ export default function PartnerAnalysis({ params }: PageProps) {
               <TableRow>
                 <TableHead>Month</TableHead>
                 <TableHead className="text-right">Leads Assigned</TableHead>
-                <TableHead className="text-right">Total Leads</TableHead>
                 <TableHead className="text-right">Sales</TableHead>
                 <TableHead className="text-right">Revenue (₹)</TableHead>
               </TableRow>
@@ -189,9 +197,36 @@ export default function PartnerAnalysis({ params }: PageProps) {
                 <TableRow key={month.month}>
                   <TableCell>{month.month}</TableCell>
                   <TableCell className="text-right">{month.leadsAssigned}</TableCell>
-                  <TableCell className="text-right">{month.leads}</TableCell>
                   <TableCell className="text-right">{month.sales}</TableCell>
                   <TableCell className="text-right">₹{month.revenue.toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Yearly Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Year</TableHead>
+                <TableHead className="text-right">Leads Assigned</TableHead>
+                <TableHead className="text-right">Sales</TableHead>
+                <TableHead className="text-right">Revenue (₹)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {stats.yearlyStats.map((year) => (
+                <TableRow key={year.year}>
+                  <TableCell>{year.year}</TableCell>
+                  <TableCell className="text-right">{year.leadsAssigned}</TableCell>
+                  <TableCell className="text-right">{year.sales}</TableCell>
+                  <TableCell className="text-right">₹{year.revenue.toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -201,3 +236,4 @@ export default function PartnerAnalysis({ params }: PageProps) {
     </div>
   )
 }
+

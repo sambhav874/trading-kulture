@@ -3,7 +3,7 @@ import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,11 +16,39 @@ import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {Loader2} from 'lucide-react'
+import {Loader2, Save} from 'lucide-react'
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/hooks/use-toast';
 
 
-const LeadTable = ({ leads, status, handleStatusUpdate }) => (
+interface CommissionSlab {
+  min: number
+  max: number
+  rate: number
+}
+
+interface Sale {
+  id: string
+  date: string
+  amount: number
+  isFirstMonth: boolean
+  isSecondMonth: boolean
+  amountChargedFirstMonth: number
+  amountChargedSecondMonth: number
+}
+
+interface CommissionData {
+  partnerId: string
+  partnerName: string
+  slabs: Record<string, CommissionSlab>
+  totalSales: number
+  currentSlab: string
+  estimatedCommission: number
+  sales: Sale[]
+}
+
+const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
   <Card className="mb-6">
     <CardHeader>
       <CardTitle>{status.charAt(0).toUpperCase() + status.slice(1)} Leads</CardTitle>
@@ -36,7 +64,7 @@ const LeadTable = ({ leads, status, handleStatusUpdate }) => (
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.filter(lead => lead.status === status).map((lead) => (
+          {leads.filter((lead : any) => lead.status === status).map((lead : any) => (
             <TableRow key={lead._id}>
               <TableCell>{lead.name}</TableCell>
               <TableCell>{lead.email}</TableCell>
@@ -75,6 +103,15 @@ export default function Dashboard() {
   const [receivedKits, setReceivedKits] = useState([]);
   const [requestLoading, setRequestLoading] = useState(false);
   const [kitDataLoading, setKitDataLoading] = useState(true);
+  const [firstMonthSubscription, setFirstMonthSubscription] = useState('no');
+  const [renewalSecondMonth, setRenewalSecondMonth] = useState('no');
+  const [amountChargedFirstMonth, setAmountChargedFirstMonth] = useState<string | null>(null);
+  const [amountChargedSecondMonth, setAmountChargedSecondMonth] = useState<string | null>(null);
+
+  const [commissionData, setCommissionData] = useState<CommissionData | null>(null)
+  const [loading, setLoading] = useState(false)
+  
+  
 
   useEffect(() => {
     if (session) {
@@ -83,13 +120,112 @@ export default function Dashboard() {
       fetchKits();
       fetchKitHistory();
       fetchReceivedKits();
+      fetchCommissionData()
+      
     }
+    
   }, [session]);
+  
 
   if (status === 'loading') return <div>Loading...</div>;
   if (!session) {
     router.push('/auth/signin');
     return null;
+  }
+
+  const fetchCommissionData = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/commissions/calculate?partnerId=${session?.user.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch commission data')
+      }
+      const data = await response.json()
+      setCommissionData(data)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to fetch commission data: ${(error as Error).message}`,
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
+  const calculateCommission = (sale: Sale) => {
+    if (!commissionData) return 0
+
+    const { slabs } = commissionData
+    const eligibleSales = commissionData.sales.filter(s => 
+      (s.isFirstMonth || s.isSecondMonth) && s.date <= sale.date
+    ).length
+    let commissionRate = 0
+
+    for (const slab of Object.values(slabs)) {
+      if (eligibleSales >= slab.min && eligibleSales <= slab.max) {
+        commissionRate = slab.rate / 100
+        break
+      }
+    }
+
+    let commission = 0
+    if (sale.isFirstMonth) {
+      commission = sale.amountChargedFirstMonth * commissionRate
+    }
+    if (sale.isSecondMonth && sale.isFirstMonth) {
+      commission = sale.amountChargedSecondMonth * commissionRate * 0.75 // 25% depreciation for second month renewals
+    }
+
+    return commission
+  }
+
+
+  const calculateTotaledCommission = (sale: Sale) => {
+    if (!commissionData) return 0
+
+    const { slabs } = commissionData
+    const eligibleSales = commissionData.sales.filter(s => 
+      (s.isFirstMonth || s.isSecondMonth) && s.date <= sale.date
+    ).length
+    let commissionRate = 0
+
+    for (const slab of Object.values(slabs)) {
+      if (eligibleSales >= slab.min && eligibleSales <= slab.max) {
+        commissionRate = slab.rate / 100
+        break
+      }
+    }
+
+    let commission = 0
+    if (sale.isFirstMonth) {
+      commission = sale.amountChargedFirstMonth * commissionRate
+    }
+    if (sale.isSecondMonth) {
+      commission += sale.amountChargedSecondMonth * commissionRate * 0.75 // 25% depreciation for second month renewals
+    }
+
+    return commission
+  }
+
+  const getTotalCommission = () => {
+    if (!commissionData) return 0
+    return commissionData.sales.reduce((total, sale) => total + calculateTotaledCommission(sale), 0)
+  }
+
+  const getEligibleSalesCount = () => {
+    if (!commissionData) return 0
+    return commissionData.sales.filter(sale => sale.isFirstMonth || sale.isSecondMonth).length
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
   }
 
   const fetchLeads = async () => {
@@ -153,7 +289,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleStatusUpdate = async (leadId, newStatus) => {
+  const handleStatusUpdate = async (leadId : any, newStatus : any)  => {
     try {
       const response = await fetch(`/api/leads?id=${leadId}`, {
         method: 'PUT',
@@ -168,7 +304,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleSaleRecord = async (leadId, formData) => {
+  const handleSaleRecord = async (leadId : any, formData : any) => {
     try {
       const response = await fetch('/api/sales', {
         method: 'POST',
@@ -177,6 +313,10 @@ export default function Dashboard() {
           leadId,
           amount: parseFloat(formData.amount),
           partnerId: session.user.id,
+          firstMonthSubscription,
+          amountChargedFirstMonth: amountChargedFirstMonth ? parseFloat(amountChargedFirstMonth) : null,
+          renewalSecondMonth,
+          amountChargedSecondMonth: amountChargedSecondMonth ? parseFloat(amountChargedSecondMonth) : null,
           date: new Date().toISOString()
         })
       });
@@ -189,7 +329,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleKitRequest = async (formData) => {
+  const handleKitRequest = async (formData : any) => {
     setRequestLoading(true);
     try {
       const response = await fetch('/api/kits-distribution/request', {
@@ -210,13 +350,37 @@ export default function Dashboard() {
       fetchKitHistory();
 
       alert('Kit request submitted successfully!');
-    } catch (error) {
+    } catch (error : any) {
       console.error('Error requesting kits:', error);
       alert(error.message || 'Failed to submit kit request');
     } finally {
       setRequestLoading(false);
     }
   };
+
+  const handleUpdateSubscription = async (leadId : any, formData : any) => {
+    try {
+      const response = await fetch('/api/sales?id=' + leadId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadId,
+          firstMonthSubscription: formData.firstMonthSubscription,
+          amountChargedFirstMonth: formData.amountChargedFirstMonth,
+          renewalSecondMonth: formData.renewalSecondMonth,
+          amountChargedSecondMonth: formData.amountChargedSecondMonth
+        })
+      });
+      if (response.ok) {
+        alert('Subscription updated successfully!');
+        fetchSales(); // Refresh sales data
+      } else {
+        alert('Failed to update subscription.');
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+    }}
+  
 
   return (
     <div className="p-8">
@@ -230,6 +394,7 @@ export default function Dashboard() {
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="kits">Kits</TabsTrigger>
+            <TabsTrigger value="commissions">Commissions</TabsTrigger>
           </TabsList>
           
           <TabsContent value="leads">
@@ -242,106 +407,198 @@ export default function Dashboard() {
           </TabsContent>
           
           <TabsContent value="sales">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Active Leads</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Lead Name</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Record Sale</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leads
-                        .filter(lead => lead.status === 'contacted' || lead.status === 'new')
-                        .map((lead) => (
-                          <TableRow key={lead._id}>
-                            <TableCell>{lead.name}</TableCell>
-                            <TableCell>{lead.status}</TableCell>
-                            <TableCell>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline">Record Sale</Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Record Sale for {lead.name}</DialogTitle>
-                                  </DialogHeader>
-                                  <form 
-                                    onSubmit={(e) => {
-                                      e.preventDefault();
-                                      handleSaleRecord(lead._id, {
-                                        amount: e.target.amount.value
-                                      });
-                                    }}
-                                    className="space-y-4 mt-4"
-                                  >
-                                    <div className="space-y-2">
-                                      <Label htmlFor="amount">Amount</Label>
-                                      <Input
-                                        id="amount"
-                                        name="amount"
-                                        type="number"
-                                        min="0"
-                                        step="10"
-                                        required
-                                        placeholder="Enter amount"
-                                      />
-                                    </div>
-                                    <Button type="submit" className="w-full">
-                                      Record Sale
-                                    </Button>
-                                  </form>
-                                </DialogContent>
-                              </Dialog>
-                            </TableCell>
-                          </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+          <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Leads</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Lead Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Record Sale</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads
+                .filter((lead : any) => lead.status === 'contacted' || lead.status === 'new')
+                .map((lead : any) => (
+                  <TableRow key={lead._id}>
+                    <TableCell className="font-medium">{lead.name}</TableCell>
+                    <TableCell>{lead.status}</TableCell>
+                    <TableCell>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">Record Sale</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Record Sale for {lead.name}</DialogTitle>
+                          </DialogHeader>
+                          <form 
+                            onSubmit={(e) => {
+                              e.preventDefault()
+                              const target = e.target as HTMLFormElement;
+                              handleSaleRecord(lead._id, {
+                                amount: target.amount.value
+                              })
+                            }}
+                            className="space-y-4 mt-4"
+                          >
+                            <div className="space-y-2">
+                              <Label htmlFor="amount">Amount</Label>
+                              <Input
+                                id="amount"
+                                name="amount"
+                                type="number"
+                                min="0"
+                                step="10"
+                                required
+                                placeholder="Enter amount"
+                              />
+                            </div>
+                            <Button type="submit" className="w-full">
+                              Record Sale
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Successful Sales</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Lead Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone Number</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leads
-                        .filter(lead => lead.status === 'successful')
-                        .map((lead) => {
-                          const leadSales = sales.filter(sale => sale.leadId === lead._id);
-                          return leadSales.map((sale, index) => (
-                            <TableRow key={`${lead._id}-${index}`}>
-                              <TableCell>{lead.name}</TableCell>
-                              <TableCell>{lead.email}</TableCell>
-                              <TableCell>{lead.mobileNo}</TableCell>
-                              <TableCell>Rs {sale.amount.toFixed(2)}</TableCell>
-                              <TableCell>{new Date(sale.createdAt).toLocaleDateString()}</TableCell>
-                            </TableRow>
-                          ));
-                        })}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Successful Sales</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Lead Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone Number</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Subscription</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads
+                .filter((lead : any) => lead.status === 'successful')
+                .map((lead : any) => {
+                  const leadSales = sales.filter((sale : any) => sale.leadId === lead._id)
+                  return leadSales.map((sale : any, index : any) => (
+                    <TableRow key={`${lead._id}-${index}`}>
+                      <TableCell className="font-medium">{lead.name}</TableCell>
+                      <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.mobileNo}</TableCell>
+                      <TableCell>Rs {sale.amount.toFixed(2)}</TableCell>
+                      <TableCell>{new Date(sale.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline">Manage Subscription</Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>Manage Subscription for {lead.name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="first-month" className="text-right">
+                                  First Month
+                                </Label>
+                                <div className="col-span-3">
+                                  <Select
+                                    onValueChange={setFirstMonthSubscription}
+                                    defaultValue={sale.firstMonthSubscription}
+                                  >
+                                    <SelectTrigger id="first-month">
+                                      <SelectValue placeholder="First Month Subscription" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes</SelectItem>
+                                      <SelectItem value="no">No</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              {firstMonthSubscription === 'yes' && (
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="first-month-amount" className="text-right">
+                                    Amount
+                                  </Label>
+                                  <Input
+                                    id="first-month-amount"
+                                    type="number"
+                                    placeholder="Amount for First Month"
+                                    className="col-span-3"
+                                    onChange={(e) => setAmountChargedFirstMonth(e.target.value)}
+                                  />
+                                </div>
+                              )}
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="second-month" className="text-right">
+                                  Second Month
+                                </Label>
+                                <div className="col-span-3">
+                                  <div className="col-span-3">
+                                    <Select
+                                      onValueChange={setRenewalSecondMonth}
+                                      defaultValue={sale.renewalSecondMonth}
+                                    >
+                                      <SelectTrigger id="second-month">
+                                        <SelectValue placeholder="Renewal Second Month" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="yes">Yes</SelectItem>
+                                        <SelectItem value="no">No</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+                              {renewalSecondMonth === 'yes' && (
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="second-month-amount" className="text-right">
+                                    Amount
+                                  </Label>
+                                  <Input
+                                    id="second-month-amount"
+                                    type="number"
+                                    placeholder="Amount for Second Month"
+                                    className="col-span-3"
+                                    onChange={(e) => setAmountChargedSecondMonth(e.target.value)}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <Button onClick={() => handleUpdateSubscription(lead._id, {
+                              firstMonthSubscription,
+                              amountChargedFirstMonth,
+                              renewalSecondMonth,
+                              amountChargedSecondMonth
+                            })}>
+                              Update Subscription
+                            </Button>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div> 
           </TabsContent>
           
           <TabsContent value="analytics">
@@ -405,7 +662,7 @@ export default function Dashboard() {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <form 
-                      onSubmit={(e) => {
+                      onSubmit={(e : any) => {
                         e.preventDefault();
                         handleKitRequest({
                           quantity: e.target.quantity.value
@@ -464,7 +721,7 @@ export default function Dashboard() {
                         </TableHeader>
                         <TableBody>
                           {kitHistory.length > 0 ? (
-                            kitHistory.map((record) => (
+                            kitHistory.map((record : any) => (
                               <TableRow key={record._id}>
                                 <TableCell>
                                   {new Date(record.date).toLocaleDateString()}
@@ -517,7 +774,7 @@ export default function Dashboard() {
                       </TableHeader>
                       <TableBody>
                         {receivedKits.length > 0 ? (
-                          receivedKits.map((kit) => (
+                          receivedKits.map((kit : any) => (
                             <TableRow key={kit._id}>
                               <TableCell>
                                 {new Date(kit.createdAt).toLocaleDateString()}
@@ -551,6 +808,90 @@ export default function Dashboard() {
                   </ScrollArea>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="commissions">
+            <div className="space-y-6">
+              {commissionData ? (
+        <div className="grid gap-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Status</CardTitle>
+                <CardDescription>Partner's sales performance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-2">
+                  <div className="flex justify-between">
+                    <dt className="text-sm font-medium">Total Sales</dt>
+                    <dd className="text-sm">{commissionData.totalSales}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm font-medium">Eligible Sales</dt>
+                    <dd className="text-sm">{getEligibleSalesCount()}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm font-medium">Current Slab</dt>
+                    <dd className="text-sm">{commissionData.currentSlab}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm font-medium">Total Commission</dt>
+                    <dd className="text-sm">
+                      ₹{getTotalCommission().toFixed(2)}
+                    </dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+
+            
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Sales and Commissions</CardTitle>
+              <CardDescription>Detailed view of all sales and calculated commissions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>First Month Amount</TableHead>
+                    <TableHead>Second Month Amount</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Commission</TableHead>
+                    <TableHead>Total Commission</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {commissionData.sales.map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell>{new Date(sale.date).toLocaleDateString() }</TableCell>
+                      <TableCell>₹{sale.amountChargedFirstMonth}</TableCell>
+                      <TableCell>₹{sale.amountChargedSecondMonth}</TableCell>
+                      <TableCell>
+                        {sale.isFirstMonth && sale.isSecondMonth ? 'First & Second Month' :
+                         sale.isFirstMonth ? 'First Month' : 
+                         sale.isSecondMonth ? 'Second Month' : 
+                         'No Subscription'}
+                      </TableCell>
+                      <TableCell>₹{calculateCommission(sale).toFixed(2)}</TableCell>
+                      <TableCell>₹{calculateTotaledCommission(sale).toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">No commission data found.</div>
+          </CardContent>
+        </Card>
+      )}
             </div>
           </TabsContent>
         </Tabs>

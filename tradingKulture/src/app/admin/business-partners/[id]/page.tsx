@@ -61,7 +61,7 @@ export default function EditPartner() {
     }
   }, [session, status, params.id, router])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e : any) => {
     e.preventDefault()
     setSaving(true)
   
@@ -90,7 +90,7 @@ export default function EditPartner() {
     }
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e : any) => {
     const { name, value } = e.target
     setPartner(prev => ({
       ...prev,

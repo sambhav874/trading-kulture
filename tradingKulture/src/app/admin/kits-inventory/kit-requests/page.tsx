@@ -129,14 +129,16 @@ export default function KitRequestsPage() {
     );
   }
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return 'success';
+        return 'secondary';
       case 'rejected':
         return 'destructive';
+      case 'pending':
+        return 'outline';
       default:
-        return 'warning';
+        return 'default';
     }
   };
 
@@ -183,7 +185,16 @@ export default function KitRequestsPage() {
                 </TableCell>
                 <TableCell>{request.quantity}</TableCell>
                 <TableCell>
-                  <Badge variant={getStatusBadgeVariant(request.status)}>
+                  <Badge 
+                    variant={getStatusBadgeVariant(request.status)}
+                    className={
+                      request.status.toLowerCase() === 'approved' 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : request.status.toLowerCase() === 'pending'
+                        ? 'bg-yellow-500 hover:bg-yellow-600'
+                        : ''
+                    }
+                  >
                     {request.status.toUpperCase()}
                   </Badge>
                 </TableCell>
@@ -227,3 +238,4 @@ export default function KitRequestsPage() {
     </Card>
   );
 }
+

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(formattedInventory, { status: 200 });
-  } catch (error) {
+  } catch (error : any)  {
     console.error('Error fetching inventory:', error);
     return NextResponse.json({ 
       message: 'Error fetching inventory',
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       .lean();
 
     return NextResponse.json(populatedInventory, { status: 201 });
-  } catch (error) {
+  } catch (error : any) {
     console.error('Error adding inventory:', error);
     return NextResponse.json({
       message: 'Error adding inventory',
@@ -118,7 +118,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json(updatedInventory, { status: 200 });
-  } catch (error) {
+  } catch (error : any) {
     console.error('Error updating inventory:', error);
     return NextResponse.json({ 
       message: 'Error updating inventory',

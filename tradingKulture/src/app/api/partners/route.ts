@@ -1,15 +1,17 @@
 // app/api/partners/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authConfig } from './../auth/[...nextauth]/auth';
 import connectDB from '@/lib/db'
 import User from '@/lib/models/User'
 import { Inventory } from '@/lib/models/Inventory'
 import { KitDistribution } from '@/lib/models/KitDistribution'
+import bcrypt from 'bcrypt'
+import { Types } from 'mongoose'
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -53,7 +55,7 @@ export async function GET(request: Request) {
 
     // Combine the data
     const enrichedPartners = partners.map(partner => {
-      const partnerId = partner._id.toString();
+      const partnerId = (partner._id as Types.ObjectId).toString();
       return {
         ...partner,
         totalKits: inventoryMap.get(partnerId) || 0,
@@ -75,7 +77,7 @@ export async function GET(request: Request) {
 // PUT update partner
 export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession( authConfig);
 
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -118,7 +120,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
     try {
-      const session = await getServerSession(authOptions)
+      const session = await getServerSession(authConfig)
       if (!session || session.user.role !== 'admin') {
         return NextResponse.json(
           { message: 'Unauthorized' },
@@ -161,5 +163,48 @@ export async function DELETE(request: Request) {
         { message: 'Internal server error' },
         { status: 500 }
       )
+    }
+  }
+
+  export async function POST(request: Request) {
+    try {
+      const session = await getServerSession(authConfig);
+      if (!session || session.user.role !== 'admin') {
+        return NextResponse.json(
+          { message: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+  
+      const { email, password } = await request.json();
+  
+      
+      // Validate input
+      if (!email || !password) {
+        return NextResponse.json(
+          { message: 'Email and password are required' },
+          { status: 400 }
+        );
+      }
+      const hashedPassword = await bcrypt.hash(password, 10)
+  
+      await connectDB();
+  
+      // Create a new user
+      const newUser = new User({
+        email,
+        password: hashedPassword, 
+        role: 'partner', 
+      });
+  
+      await newUser.save();
+  
+      return NextResponse.json(newUser, { status: 201 });
+    } catch (error) {
+      console.error('Error creating partner:', error);
+      return NextResponse.json(
+        { message: 'Internal server error' },
+        { status: 500 }
+      );
     }
   }

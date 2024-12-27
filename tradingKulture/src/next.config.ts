@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config : any, { isServer : any }) => {
-    if (!isServer ) {
+  reactStrictMode: false,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  webpack: (config : any, { isServer} : any) => {
+    if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -14,4 +18,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

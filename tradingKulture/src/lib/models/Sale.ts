@@ -22,6 +22,24 @@ const saleSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'cancelled'],
     default: 'pending'
   },
+  firstMonthSubscription: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
+  },
+  renewalSecondMonth: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
+  },
+  amountChargedFirstMonth: {
+    type: Number,
+    default: null
+  },
+  amountChargedSecondMonth: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

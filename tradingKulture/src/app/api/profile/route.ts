@@ -1,23 +1,52 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authConfig } from './../auth/[...nextauth]/auth';
 import connectDB from '@/lib/db'
 import User from '@/lib/models/User'
+import Commission from '@/lib/models/Commission'
+import {Inventory} from '@/lib/models/Inventory'
 
-// Helper function to check if all required fields are filled
 function isProfileComplete(data: any): boolean {
   const requiredFields = ['name', 'phoneNumber', 'city', 'state', 'pincode']
-  return requiredFields.every(field => 
-    data[field] && 
-    typeof data[field] === 'string' && 
+  return requiredFields.every(field =>
+    data[field] &&
+    typeof data[field] === 'string' &&
     data[field].trim() !== ''
   )
 }
 
+
+async function ensureCommissionExists(userId: string) {
+  const existingCommission = await Commission.findOne({ partnerId: userId });
+  
+  if (!existingCommission) {
+    await Commission.create({
+      partnerId: userId,
+      slabs: {
+        '0-30': 0,
+        '30-70': 0,
+        '70-100': 0
+      }
+    });
+  }
+}
+
+async function ensureInventoryExists(userId: string) {
+  const existingInventory = await Inventory.findOne({ partnerId: userId });
+  
+  if (!existingInventory) {
+    await Inventory.create({
+      partnerId: userId,
+      quantity: 0,
+      distributed: 0,
+      unitPrice: 0
+    });
+  }
+}
+
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await getServerSession(authConfig)
     if (!session) {
       return NextResponse.json(
         { message: 'Unauthorized' },
@@ -27,7 +56,6 @@ export async function GET() {
 
     await connectDB()
     const user = await User.findOne({ email: session.user.email })
-    
     if (!user) {
       return NextResponse.json(
         { message: 'User not found' },
@@ -56,7 +84,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authConfig)
     if (!session) {
       return NextResponse.json(
         { message: 'Unauthorized' },
@@ -65,8 +93,6 @@ export async function PUT(request: Request) {
     }
 
     const data = await request.json()
-    
-    // Check if the profile is complete
     const profileComplete = isProfileComplete(data)
 
     await connectDB()
@@ -87,12 +113,8 @@ export async function PUT(request: Request) {
       city: data.city,
       state: data.state,
       pincode: data.pincode,
-      isProfileComplete: profileComplete
-    }
-
-    // Add email to update only if user is not a Google user
-    if (!user.googleId && data.email) {
-      updateData.email = data.email
+      isProfileComplete: profileComplete,
+      email: data.email || user.email
     }
 
     const updatedUser = await User.findOneAndUpdate(
@@ -106,6 +128,16 @@ export async function PUT(request: Request) {
         { message: 'User not found' },
         { status: 404 }
       )
+    }
+
+    // If profile is complete and user is a partner, ensure commission entry exists
+    if (profileComplete && updatedUser.role === 'partner') {
+      await ensureCommissionExists(updatedUser._id);
+    }
+
+    // If profile is complete and user is a partner, ensure inventory entry exists
+    if (profileComplete && updatedUser.role === 'partner') {
+      await ensureInventoryExists(updatedUser._id);
     }
 
     return NextResponse.json({

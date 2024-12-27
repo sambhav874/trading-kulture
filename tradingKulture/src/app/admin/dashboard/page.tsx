@@ -36,14 +36,14 @@ export default function AdminDashboard() {
       title: 'Add Leads',
       description: 'Adding leads generated via social media',
       icon: UserPlus,
-      route: '/leads/new',
+      route: 'admin/leads',
       stats: 'Add partner',
       color: 'bg-green-500'
     },
     {
       title: 'Kits and Inventory',
       description: 'Managing Inventory and Kits with respect to the partner',
-      icon: UserPlus,
+      icon: Users,
       route: '/admin/kits-inventory',
       stats: 'Add partner',
       color: 'bg-green-500'
@@ -57,29 +57,30 @@ export default function AdminDashboard() {
       color: 'bg-purple-500'
     },
     {
-      title: 'Notifications',
-      description: 'Manage system notifications and alerts',
-      icon: Bell,
-      route: '/notifications',
-      stats: 'View notifications',
-      color: 'bg-yellow-500'
-    },
-    {
-      title: 'Security Settings',
-      description: 'Manage system security and access controls',
-      icon: Shield,
-      route: '/security',
-      stats: 'View settings',
+      title: 'Commissions Slabs',
+      description: 'Manage commissions slabs for business partners',
+      icon: Settings,
+      route: '/admin/commissions',
+      stats: 'View Slabs',
       color: 'bg-red-500'
     },
     {
-      title: 'System Settings',
-      description: 'Configure system-wide settings and preferences',
-      icon: Settings,
-      route: '/settings',
-      stats: 'View settings',
+      title: 'Commissions Calculator',
+      description: 'Calculate the commissions for business partners',
+      icon: Shield,
+      route: '/admin/commission-calculator',
+      stats: 'View Commissions',
       color: 'bg-gray-500'
-    }
+    },
+    {
+      title: 'Support Tickets',
+      description: 'Reply to support tickets',
+      icon: Bell,
+      route: '/admin/support-tickets',
+      stats: 'View tickets',
+      color: 'bg-yellow-500'
+    },
+    
   ]
 
   return (
@@ -90,13 +91,7 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-gray-600 mt-1">Welcome back, {session.user.name}</p>
           </div>
-          <Button
-            onClick={() => router.push('/business-partners/new')}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add New Partner
-          </Button>
+          
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

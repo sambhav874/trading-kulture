@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authConfig } from './../auth/[...nextauth]/auth';
 import connectDB from '@/lib/db';
 import mongoose from 'mongoose';
 import {Sale} from '@/lib/models/Sale';
 import Lead from '@/lib/models/Lead';
 import { Inventory } from '@/lib/models/Inventory';
+import ManagedCommission from '@/lib/models/ManagedCommission';
+import Commission from '@/lib/models/Commission';
+import { User as UserType } from '@/types/index';
 
-export async function GET(request) {
+export async function GET(request : Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -35,9 +38,9 @@ export async function GET(request) {
   }
 }
 
-export async function POST(request) {
+export async function POST(request : Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,18 +50,18 @@ export async function POST(request) {
     console.log('Request body:', body);
 
     // Validate required fields
-    if (!leadId || !amount || !partnerId ) {
+    if (!leadId || !amount || !partnerId) {
       console.log('Missing fields:', { leadId, amount, partnerId });
       return NextResponse.json({ 
-        error: 'Missing required fields: leadId, quantity, amount, and partnerId are required' 
+        error: 'Missing required fields: leadId, amount, partnerId are required' 
       }, { status: 400 });
     }
 
     // Validate numeric fields
-    if ( isNaN(amount) || amount < 0 ) {
-      console.log('Invalid numeric values:', { amount,  });
+    if (isNaN(amount) || amount < 0 ) {
+      console.log('Invalid numeric values:', { amount});
       return NextResponse.json({ 
-        error: 'Invalid quantity or amount values' 
+        error: 'Invalid amount ' 
       }, { status: 400 });
     }
 
@@ -91,6 +94,8 @@ export async function POST(request) {
       leadId,
       amount,
       partnerId,
+      firstMonthSubscription : 'no',
+      renewalSecondMonth : 'no',
       date: new Date()
     });
 
@@ -117,7 +122,7 @@ export async function POST(request) {
     await sale.populate('leadId', 'name email');
 
     return NextResponse.json(sale);
-  } catch (error) {
+  } catch (error : any) {
     console.error('Error in sales POST:', error);
     if (error.name === 'ValidationError') {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -126,46 +131,11 @@ export async function POST(request) {
   }
 }
 
-export async function PUT(request) {
+
+
+export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const saleId = searchParams.get('id');
-    
-    if (!saleId) {
-      return NextResponse.json({ error: 'Sale ID is required' }, { status: 400 });
-    }
-
-    const body = await request.json();
-    const {  amount } = body;
-
-    await connectDB();
-
-    // Find and update the sale
-    const sale = await Sale.findOneAndUpdate(
-      { _id: saleId, partnerId: session.user.id },
-      {  amount },
-      { new: true }
-    ).populate('leadId', 'name email');
-
-    if (!sale) {
-      return NextResponse.json({ error: 'Sale not found or unauthorized' }, { status: 404 });
-    }
-
-    return NextResponse.json(sale);
-  } catch (error) {
-    console.error('Error in sales PUT:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
-
-export async function DELETE(request) {
-  try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -195,3 +165,122 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+async function updateCommission(sale: any, partnerId: string) {
+  const commissionSlab = await Commission.findOne({ partnerId });
+
+  if (!commissionSlab) {
+    throw new Error('Commission slab not alloted. Please contact admin');
+  }
+
+  let managedCommission = await ManagedCommission.findOneAndUpdate(
+    { partnerId },
+    {
+      $setOnInsert: {
+        partnerId,
+        currentSlab: '0-30',
+        salesData: [],
+        totalCommission: 0
+      }
+    },
+    { 
+      new: true, 
+      upsert: true 
+    }
+  );
+
+  const eligibleSales = managedCommission.salesData.filter((s : any) => 
+    (s.firstMonthSubscription === 'yes')
+  ).length + (sale.firstMonthSubscription === 'yes' ? 1 : 0);
+
+  // Update current slab
+  if (eligibleSales <= 30) {
+    managedCommission.currentSlab = '0-30';
+  } else if (eligibleSales <= 70) {
+    managedCommission.currentSlab = '30-70';
+  } else {
+    managedCommission.currentSlab = '70-100';
+  }
+
+  // Calculate commission for the current sale
+  const commissionRate = commissionSlab.slabs[managedCommission.currentSlab] / 100;
+  let saleCommission = 0;
+
+  if (sale.firstMonthSubscription === 'yes') {
+    saleCommission += sale.amountChargedFirstMonth * commissionRate;
+  }
+  if (sale.firstMonthSubscription === 'yes' && sale.renewalSecondMonth === 'yes') {
+    saleCommission += sale.amountChargedSecondMonth * commissionRate * 0.75; // 25% depreciation for second month renewals
+  }
+
+  // Add the new sale data
+  managedCommission.salesData.push({
+    saleId: sale._id,
+    firstMonthSubscription: sale.firstMonthSubscription,
+    amountChargedFirstMonth: sale.amountChargedFirstMonth,
+    renewalSecondMonth: sale.renewalSecondMonth,
+    amountChargedSecondMonth: sale.amountChargedSecondMonth,
+    commission: saleCommission,
+  });
+
+  // Update total commission
+  managedCommission.totalCommission += saleCommission;
+
+  await managedCommission.save();
+
+  return managedCommission;
+}
+
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authConfig);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const saleId = searchParams.get('id');
+    
+    if (!saleId) {
+      return NextResponse.json({ error: 'Sale ID is required' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { firstMonthSubscription, amountChargedFirstMonth, renewalSecondMonth, amountChargedSecondMonth } = body;
+
+    // Validate required fields
+    if (!saleId || firstMonthSubscription === undefined || renewalSecondMonth === undefined) {
+      return NextResponse.json({ error: 'Missing required fields: saleId, firstMonthSubscription, and renewalSecondMonth are required' }, { status: 400 });
+    }
+
+    await connectDB();
+
+    // Find and update the sale
+    const sale = await Sale.findOneAndUpdate(
+      { leadId: saleId, partnerId: session.user.id },
+      {  
+        firstMonthSubscription,
+        amountChargedFirstMonth: amountChargedFirstMonth ? parseFloat(amountChargedFirstMonth) : null,
+        renewalSecondMonth,
+        amountChargedSecondMonth: amountChargedSecondMonth ? parseFloat(amountChargedSecondMonth) : null
+      },
+      { new: true }
+    ).populate('leadId', 'name email');
+
+    if (!sale) {
+      return NextResponse.json({ error: 'Sale not found or unauthorized' }, { status: 404 });
+    }
+
+    // Update commission
+    try {
+      const updatedCommission = await updateCommission(sale, session.user.id);
+      return NextResponse.json({ sale, commission: updatedCommission });
+    } catch (commissionError : any) {
+      console.error('Error updating commission:', commissionError);
+      return NextResponse.json({ error: 'Error updating commission', details: commissionError.message }, { status: 500 });
+    }
+  } catch (error : any) {
+    console.error('Error in sales PUT:', error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  }
+}
+

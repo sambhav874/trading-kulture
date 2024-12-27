@@ -145,7 +145,7 @@ const SignInForm = () => {
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
+                render={({ field } : any) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
@@ -160,7 +160,7 @@ const SignInForm = () => {
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
+              render={({ field }: any) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
@@ -176,7 +176,7 @@ const SignInForm = () => {
                 <FormField
                   control={form.control}
                   name="phone"
-                  render={({ field }) => (
+                  render={({ field }: any) => (
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
@@ -193,7 +193,7 @@ const SignInForm = () => {
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field }: any) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>

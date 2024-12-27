@@ -1,22 +1,16 @@
 import mongoose from 'mongoose'
 
 const CommissionSchema = new mongoose.Schema({
-  sale: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Sale',
-  },
-  partner: {
+  
+  partnerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  amount: Number,
-  status: {
-    type: String,
-    enum: ['pending', 'paid'],
-    default: 'pending',
+  slabs: {
+    '0-30': { type: Number, default: 0 },
+    '30-70': { type: Number, default: 0 },
+    '70-100': { type: Number, default: 0 },
   },
-  paidAt: Date,
 })
 
 export default mongoose.models.Commission || mongoose.model('Commission', CommissionSchema)
-
