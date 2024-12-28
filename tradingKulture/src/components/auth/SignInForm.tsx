@@ -73,7 +73,7 @@ const SignInForm = () => {
       if (isSignUp) {
         const signUpData = { ...values, role: 'partner' }
         
-        const response = await fetch('/api/signup', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(signUpData),
@@ -83,14 +83,14 @@ const SignInForm = () => {
           const result = await signIn('credentials', {
             email: values.email,
             password: values.password,
-            callbackUrl: '/profile', // Changed to redirect to profile
+            callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/profile`, // Changed to redirect to profile
             redirect: false,
           })
     
           if (result?.error) {
             setError('Sign up successful, but sign in failed. Please try signing in manually.')
           } else if (result?.ok) {
-            window.location.href = '/profile' 
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/profile` 
           }
         } else {
           const data = await response.json()
@@ -101,14 +101,14 @@ const SignInForm = () => {
         const result = await signIn('credentials', {
           email: values.email,
           password: values.password,
-          callbackUrl: '/profile', 
+          callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/profile`, 
           redirect: false,
         })
     
         if (result?.error) {
           setError(result.error)
         } else if (result?.ok) {
-          window.location.href = '/profile' 
+          window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/profile` 
         }
       }
     } catch (err) {
@@ -242,7 +242,7 @@ const SignInForm = () => {
             variant="outline"
             type="button"
             className="w-full mt-4"
-            onClick={() => signIn('google', { callbackUrl: '/profile' })}
+            onClick={() => signIn('google', { callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/profile` })}
           >
             <Icons.google className="mr-2 h-4 w-4" />
             Sign in with Google

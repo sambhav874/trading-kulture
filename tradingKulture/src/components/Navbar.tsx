@@ -24,7 +24,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center">
+            <Link href={`${process.env.NEXT_PUBLIC_API_URL}/`} className="flex-shrink-0 flex items-center">
               <span className="font-bold text-xl text-gray-700">Trading<span className="text-green-500">Kulture</span></span>
             </Link>
           </div>
@@ -33,12 +33,12 @@ export default function Navbar() {
             {session ? (
               <>
                 {session.user.role === 'admin' && (
-                  <Link href="/admin/dashboard" passHref>
+                  <Link href={`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`} passHref>
                     <Button variant="ghost">Admin Dashboard</Button>
                   </Link>
                 )}
                 {session.user.role === 'partner' && (
-                  <Link href="/dashboard" passHref>
+                  <Link href={`${process.env.NEXT_PUBLIC_API_URL}/dashboard`} passHref>
                     <Button variant="ghost">Partner Dashboard</Button>
                   </Link>
                 )}
@@ -70,7 +70,7 @@ export default function Navbar() {
                 </DropdownMenu>
               </>
             ) : (
-              <Link href="/auth/signin" passHref>
+              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`} passHref>
                 <Button variant="default">Sign in</Button>
               </Link>
             )}
@@ -99,20 +99,20 @@ export default function Navbar() {
           {session ? (
             <>
               {session.user.role === 'admin' && (
-                <Link href="/admin/dashboard" passHref>
+                <Link href={`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`} passHref>
                   <Button variant="ghost" className="w-full justify-start">Admin Dashboard</Button>
                 </Link>
               )}
               {session.user.role === 'partner' && (
-                <Link href="/dashboard" passHref>
+                <Link href={`${process.env.NEXT_PUBLIC_API_URL}/dashboard`} passHref>
                   <Button variant="ghost" className="w-full justify-start">Partner Dashboard</Button>
                 </Link>
               )}
-              <Link href="/profile" passHref>
+              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/profile`} passHref>
                 <Button variant="ghost" className="w-full justify-start">Profile</Button>
               </Link>
               {session.user.role === 'partner' && (
-                <Link href="/support" passHref>
+                <Link href={`${process.env.NEXT_PUBLIC_API_URL}/support`} passHref>
                   <Button variant="ghost" className="w-full justify-start">Support</Button>
                 </Link>
               )}
