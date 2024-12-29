@@ -174,12 +174,12 @@ export default function Home() {
               Advanced trading indicators and analysis powered by artificial intelligence. Make smarter trading decisions with our cutting-edge technology.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link href="/auth/signin">
+              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`}>
                 <Button className="bg-[#39FF14] hover:bg-white text-black ">
                   Get started
                 </Button>
               </Link>
-              <Link href="/about" className="text-sm font-semibold leading-6 text-gray-900 hover:text-[#39FF14] transition-colors">
+              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/about`} className="text-sm font-semibold leading-6 text-gray-900 hover:text-[#39FF14] transition-colors">
                 Learn more <span aria-hidden="true">→</span>
               </Link>
             </div>
@@ -480,7 +480,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             
-            <Link href="https://aicandle.com" className="text-sm font-semibold leading-6 text-black hover:text-green-100 transition-colors">
+            <Link href="https://aicandle.in" className="text-sm font-semibold leading-6 text-black hover:text-green-100 transition-colors">
               View Pricing <span aria-hidden="true">→</span>
             </Link>
           </div>
