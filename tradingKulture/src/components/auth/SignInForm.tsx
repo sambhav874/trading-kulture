@@ -15,13 +15,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Icons } from '@/components/ui/icons'
 
 // Separate schemas for sign-in and sign-up
@@ -71,7 +64,7 @@ const SignInForm = () => {
 
     try {
       if (isSignUp) {
-        const signUpData = { ...values, role: 'partner' }
+        const signUpData = { ...values, role: 'user' }
         
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signup`, {
           method: 'POST',

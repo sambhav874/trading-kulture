@@ -5,6 +5,8 @@ import dbConnect from '@/lib/db';
 import { KitRequest } from '@/lib/models/KitRequest';
 import { Inventory } from '@/lib/models/Inventory';
 import  User  from '@/lib/models/User'; // Import Partner model
+import { NotificationType } from '@/lib/models/Notification';
+import { createNotification } from '@/lib/notifications';
 
 export async function POST(request: Request) {
   try {
@@ -49,6 +51,16 @@ export async function POST(request: Request) {
       date: new Date()
     });
 
+    // Populate partnerId to get the name
+    const populatedKitRequest = await KitRequest.populate(kitRequest, { path: 'partnerId', select: 'name' });
+
+    await createNotification({
+      type: NotificationType.KIT_REQUEST, 
+      message: `Partner ${populatedKitRequest.partnerId.name} had created a kit request with ID ${populatedKitRequest._id}`,
+      partnerId,
+      kitRequestId: populatedKitRequest._id, 
+    });
+    
     return NextResponse.json({
       request: kitRequest,
       inventory: {

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,48 +137,48 @@ export default function Home() {
     {
       title: "AI-Powered Analysis",
       description: "Advanced artificial intelligence algorithms analyze market patterns and trends in real-time",
-      icon: <Brain className="h-8 w-8 text-[#39FF14]" />
+      icon: <Brain className="h-12 w-12 text-[#39FF14]" />
     },
     {
       title: "Smart Indicators",
       description: "Custom-built technical indicators that adapt to market conditions",
-      icon: <ChartLineUp className="h-8 w-8 text-[#39FF14]" />
+      icon: <ChartLineUp className="h-12 w-12 text-[#39FF14]" />
     },
     {
       title: "Real-time Alerts",
       description: "Instant notifications for potential trading opportunities and market movements",
-      icon: <Activity className="h-8 w-8 text-[#39FF14]" />
+      icon: <Activity className="h-12 w-12 text-[#39FF14]" />
     },
     {
       title: "Performance Tracking",
       description: "Comprehensive analytics to monitor your trading performance",
-      icon: <TrendingUp className="h-8 w-8 text-[#39FF14]" />
+      icon: <TrendingUp className="h-12 w-12 text-[#39FF14]" />
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-black to-gray-950">
       {/* Hero Section */}
       <div ref={heroRef} className="relative isolate px-6 pt-14 lg:px-8">
         <div className="absolute inset-x-0 -top-40 transform-gpu overflow-hidden blur-3xl" aria-hidden="true">
-          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-green-300 to-[#39FF14] opacity-20" />
+          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[46.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-green-300 to-[#39FF14] opacity-20" />
         </div>
         
         <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-lime-300 to-green-500">
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-lime-300 to-green-500">
               AI-Powered Trading Solutions
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Advanced trading indicators and analysis powered by artificial intelligence. Make smarter trading decisions with our cutting-edge technology.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link href={`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`}>
-                <Button className="bg-[#39FF14] hover:bg-white text-black ">
+                <Button className="bg-[#39FF14] hover:bg-black text-black hover:text-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50">
                   Get started
                 </Button>
               </Link>
-              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/about`} className="text-sm font-semibold leading-6 text-gray-900 hover:text-[#39FF14] transition-colors">
+              <Link href={`${process.env.NEXT_PUBLIC_API_URL}/about`} className="text-sm font-semibold leading-6 text-white hover:text-[#39FF14] transition-colors">
                 Learn more <span aria-hidden="true">→</span>
               </Link>
             </div>
@@ -187,26 +186,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div ref={featuresRef} className="py-24 bg-white">
+      <div ref={featuresRef} className="py-24 bg-black">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Powerful Trading Features
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Everything you need to make informed trading decisions
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-7xl grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, index) => (
-              <Card key={index} className="feature-card">
+              <Card key={index} className="feature-card   hover:scale-105 bg-gray-950 border border-gray-700 hover:border-[#39FF14]">
                 <CardHeader>
                   <div className="mb-4">{feature.icon}</div>
-                  <CardTitle>{feature.title}</CardTitle>
+                  <CardTitle className="text-white">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-gray-300">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -215,21 +213,21 @@ export default function Home() {
       </div>
 
       {/* AI Candle Indicators Section */}
-      <div ref={indicatorRef} className="py-24 bg-gray-50">
+      <div ref={indicatorRef} className="py-24 bg-gray-950">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               AI Candle Indicators
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Advanced technical analysis powered by artificial intelligence
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <Card>
+            <Card className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>Smart Pattern Recognition</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Smart Pattern Recognition</CardTitle>
+                <CardDescription className="text-gray-300">
                   Our AI algorithms detect complex chart patterns with high accuracy
                 </CardDescription>
               </CardHeader>
@@ -239,10 +237,10 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>Market Sentiment Analysis</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Market Sentiment Analysis</CardTitle>
+                <CardDescription className="text-gray-300">
                   Real-time analysis of market sentiment and trends
                 </CardDescription>
               </CardHeader>
@@ -252,10 +250,10 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>AI-Powered Predictions</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">AI-Powered Predictions</CardTitle>
+                <CardDescription className="text-gray-300">
                   Advanced forecasting models for potential market movements
                 </CardDescription>
               </CardHeader>
@@ -268,7 +266,7 @@ export default function Home() {
           </div>
           <div className="mt-12 text-center">
             <Link href="https://aicandle.in">
-              <Button className="bg-[#39FF14]  text-black hover:bg-white">
+              <Button className="bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50">
                 Explore AI Candle Indicators <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -277,17 +275,17 @@ export default function Home() {
       </div>
 
       {/* Video Section */}
-      <div ref={videoRef} className="py-24 bg-white">
+      <div ref={videoRef} className="py-24 bg-black">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               See Our Platform in Action
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Watch how our AI-powered trading indicators work
             </p>
           </div>
-          <div className="relative aspect-video rounded-xl overflow-hidden shadow-xl">
+          <div className="relative aspect-video rounded-xl overflow-hidden shadow-xl border border-gray-700 hover:border-[#39FF14] transition-all duration-300">
             <iframe 
               className="absolute w-full h-full"
               src="https://www.youtube.com/embed/lkUFWXhpMsE?si=kg7y3Mx8tcfhz_LC"
@@ -301,29 +299,29 @@ export default function Home() {
       </div>
 
       {/* Testimonials Section */}
-      <div ref={testimonialRef} className="py-24 bg-gray-50">
+      <div ref={testimonialRef} className="py-24 bg-gray-950">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               What Our Users Say
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Hear from traders who have transformed their strategies with our AI-powered platform
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {testimonials.map((testimonial, index) => (
-              <Card key={index}>
+              <Card key={index} className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <div>
-                      <CardTitle>{testimonial.name}</CardTitle>
-                      <CardDescription>{testimonial.role}</CardDescription>
+                      <CardTitle className="text-white">{testimonial.name}</CardTitle>
+                      <CardDescription className="text-gray-300">{testimonial.role}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">
+                  <p className="text-gray-300">
                     "{testimonial.quote}"
                   </p>
                 </CardContent>
@@ -334,153 +332,153 @@ export default function Home() {
       </div>
 
       {/* Stats Section */}
-      <div ref={statsRef} className="py-24 bg-white">
+      <div ref={statsRef} className="py-24 bg-black">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Our Impact in the Market
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               See how our AI-powered platform is revolutionizing trading
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div className="text-center">
               <DollarSign className="mx-auto h-12 w-12 text-[#39FF14]" />
-              <p className="mt-2 text-3xl font-bold text-gray-900">Great</p>
-              <p className="text-lg font-medium text-gray-600">Trading Volume</p>
+              <p className="mt-2 text-3xl font-bold text-white">Great</p>
+              <p className="text-lg font-medium text-gray-300">Trading Volume</p>
             </div>
             <div className="text-center">
               <Users className="mx-auto h-12 w-12 text-[#39FF14]" />
-              <p className="mt-2 text-3xl font-bold text-gray-900">High</p>
-              <p className="text-lg font-medium text-gray-600">Active Traders</p>
+              <p className="mt-2 text-3xl font-bold text-white">High</p>
+              <p className="text-lg font-medium text-gray-300">Active Traders</p>
             </div>
             <div className="text-center">
               <Globe className="mx-auto h-12 w-12 text-[#39FF14]" />
-              <p className="mt-2 text-3xl font-bold text-gray-900">Wide</p>
-              <p className="text-lg font-medium text-gray-600">States Served</p>
+              <p className="mt-2 text-3xl font-bold text-white">Wide</p>
+              <p className="text-lg font-medium text-gray-300">States Served</p>
             </div>
             <div className="text-center">
               <TrendingUp className="mx-auto h-12 w-12 text-[#39FF14]" />
-              <p className="mt-2 text-3xl font-bold text-gray-900">High</p>
-              <p className="text-lg font-medium text-gray-600">Accuracy Rate</p>
+              <p className="mt-2 text-3xl font-bold text-white">High</p>
+              <p className="text-lg font-medium text-gray-300">Accuracy Rate</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Pricing Section */}
-      <div ref={pricingRef} className="py-24 bg-gray-50">
+      <div ref={pricingRef} className="py-24 bg-gray-950">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Choose Your Plan
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-gray-300">
               Select the perfect plan for your trading needs
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <Card>
+            <Card className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>Monthly</CardTitle>
-                <CardDescription> To start trading with</CardDescription>
+                <CardTitle className="text-white">Monthly</CardTitle>
+                <CardDescription className="text-gray-300"> To start trading with</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-gray-900">Rs 5000<span className="text-lg font-normal text-gray-600">/month</span></p>
+                <p className="text-4xl font-bold text-white">Rs 5000<span className="text-lg font-normal text-gray-300">/month</span></p>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Basic AI indicators</span>
+                    <span className="text-gray-300">Basic AI indicators</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Daily market analysis</span>
+                    <span className="text-gray-300">Daily market analysis</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Monthly support</span>
+                    <span className="text-gray-300">Monthly support</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Email support</span>
+                    <span className="text-gray-300">Email support</span>
                   </li>
                 </ul>
-                <Button className="w-full  mt-8">Get Started</Button>
+                <Button className="w-full mt-8 bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50">Get Started</Button>
               </CardContent>
             </Card>
-            <Card className="border-[#39FF14]">
+            <Card className="border-[#39FF14] bg-gray-800 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>Enterprise</CardTitle>
-                <CardDescription>For Enterprises</CardDescription>
+                <CardTitle className="text-white">Enterprise</CardTitle>
+                <CardDescription className="text-gray-300">For Enterprises</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-gray-900">Custom<span className="text-lg font-normal text-gray-600"></span></p>
+                <p className="text-4xl font-bold text-white">Custom<span className="text-lg font-normal text-gray-300"></span></p>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Advanced AI indicators</span>
+                    <span className="text-gray-300">Advanced AI indicators</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Real-time market analysis</span>
+                    <span className="text-gray-300">Real-time market analysis</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>24/7 priority support</span>
+                    <span className="text-gray-300">24/7 priority support</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Custom alerts</span>
+                    <span className="text-gray-300">Custom alerts</span>
                   </li>
                 </ul>
-                <Button className="w-full mt-8 bg-[#39FF14] text-black hover:bg-white">Get Started</Button>
+                <Button className="w-full mt-8 bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50">Get Started</Button>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gray-800 border border-gray-700 hover:border-[#39FF14] transition-all duration-300 transform hover:scale-105">
               <CardHeader>
-                <CardTitle>Yearly</CardTitle>
-                <CardDescription>To reach your trading goals</CardDescription>
+                <CardTitle className="text-white">Yearly</CardTitle>
+                <CardDescription className="text-gray-300">To reach your trading goals</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-gray-900">Rs 31000/year</p>
+                <p className="text-4xl font-bold text-white">Rs 31000/year</p>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>All Pro features</span>
+                    <span className="text-gray-300">All Pro features</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Custom AI indicators</span>
+                    <span className="text-gray-300">Custom AI indicators</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Dedicated Mentor</span>
+                    <span className="text-gray-300">Dedicated Mentor</span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span>Yearly support</span>
+                    <span className="text-gray-300">Yearly support</span>
                   </li>
                 </ul>
-                <Button className="w-full mt-8">Contact Sales</Button>
+                <Button className="w-full mt-8 bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50">Contact Sales</Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      <div ref={ctaRef} className="py-24 bg-[#39FF14]">
+      {/* CTA Section */}
+      <div ref={ctaRef} className="py-24 bg-[#39FF14] opacity-80">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl">
             Ready to Transform Your Trading?
           </h2>
-          <p className="mt-6 text-xl leading-8 text-green-100">
+          <p className="mt-6 text-xl leading-8 text-green-900">
             Join thousands of successful traders using our AI-powered platform
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            
-            <Link href="https://aicandle.in" className="text-sm font-semibold leading-6 text-black hover:text-green-100 transition-colors">
+            <Link href="https://aicandle.in" className="text-sm font-semibold leading-6 text-black hover:text-green-900 transition-colors">
               View Pricing <span aria-hidden="true">→</span>
             </Link>
           </div>
@@ -489,4 +487,3 @@ export default function Home() {
     </div>
   );
 }
-

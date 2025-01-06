@@ -46,29 +46,7 @@ const saleSchema = new mongoose.Schema({
   }
 });
 
-// Middleware to update inventory after sale
-saleSchema.post('save', async function(doc) {
-  try {
-    const inventory = await mongoose.model('Inventory').findOne({
-      partnerId: doc.partnerId,
-      status: 'available'
-    });
 
-    if (inventory) {
-      inventory.quantity -= doc.quantity;
-      inventory.distributed += doc.quantity;
-      
-      if (inventory.quantity < 0) {
-        throw new Error('Insufficient inventory');
-      }
-      
-      await inventory.save();
-    }
-  } catch (error) {
-    console.error('Error updating inventory after sale:', error);
-    throw error;
-  }
-});
 
 const Sale = mongoose.models.Sale || mongoose.model('Sale', saleSchema);
 

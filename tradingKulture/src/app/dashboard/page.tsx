@@ -20,6 +20,10 @@ import {Loader2, Save} from 'lucide-react'
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
+import AdminNotificationPanel from '@/components/AdminNotificationPanel';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import FileUploadZone from '@/components/FileUploadZone';
+import UserDashboard from '@/components/UserDashboard';
 
 
 interface CommissionSlab {
@@ -59,8 +63,9 @@ const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Action</TableHead>
+            {status !== 'successful' && <TableHead>Action</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,8 +73,10 @@ const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
             <TableRow key={lead._id}>
               <TableCell>{lead.name}</TableCell>
               <TableCell>{lead.email}</TableCell>
+              <TableCell>{lead.mobileNo}</TableCell>
               <TableCell>{lead.status}</TableCell>
-              <TableCell>
+              {status !== 'successful' && (
+                <TableCell>
                 <Select
                   onValueChange={(value) => handleStatusUpdate(lead._id, value)}
                   defaultValue={lead.status}
@@ -80,11 +87,12 @@ const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
                   <SelectContent>
                     <SelectItem value="new">New</SelectItem>
                     <SelectItem value="contacted">Contacted</SelectItem>
-                    <SelectItem value="successful">Successful</SelectItem>
                     <SelectItem value="lost">Lost</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
+              )}
+              
             </TableRow>
           ))}
         </TableBody>
@@ -92,6 +100,113 @@ const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
     </CardContent>
   </Card>
 );
+
+interface Query {
+  _id: string;
+  query: string;
+  reply: string;
+  createdAt: string;
+  resolvedBy: string | null;
+}
+
+interface QueryTableProps {
+  queries: Query[];
+  onQueryUpdate: () => void;
+}
+
+export const QueryTable: React.FC<QueryTableProps> = ({ queries, onQueryUpdate }) => {
+  const { data: session } = useSession();
+  const [responses, setResponses] = useState<{ [key: string]: string }>({});
+
+  const handleResponseChange = (queryId: string, value: string) => {
+    setResponses(prev => ({ ...prev, [queryId]: value }));
+  };
+
+  const handleResponseSubmit = async (queryId: string) => {
+    try {
+      const res = await fetch(`/api/queries`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          _id: queryId, 
+          reply: responses[queryId], 
+          resolvedBy: session?.user?.id,
+          status: 'closed'
+        }),
+      });
+      if (res.ok) {
+        toast({
+          title: 'Success',
+          description: 'Response submitted successfully!',
+          variant: 'default',
+        });
+        onQueryUpdate();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit response.',
+        variant: 'destructive',
+      });
+      console.error('Error updating response:', error);
+    }
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Queries</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Created At</TableHead>
+              <TableHead>Query & Response</TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead className="w-[100px]">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {queries.map((query: Query) => (
+              <TableRow key={query._id}>
+                <TableCell className="align-top">
+                  {new Date(query.createdAt).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-2">
+                    <div className="bg-muted p-2 rounded-md">
+                      <p className="font-medium">Query:</p>
+                      <p>{query.query}</p>
+                    </div>
+                    <Textarea
+                      placeholder="Enter response"
+                      value={responses[query._id] ?? query.reply}
+                      onChange={(e) => handleResponseChange(query._id, e.target.value)}
+                      className="w-full min-h-[100px]"
+                    />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={query.resolvedBy ? "default" : "secondary"}>
+                    {query.resolvedBy ? "Closed" : "Open"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    onClick={() => handleResponseSubmit(query._id)}
+                    disabled={!responses[query._id] && !query.reply || query.resolvedBy}
+                  >
+                    Submit
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );}
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -110,21 +225,44 @@ export default function Dashboard() {
 
   const [commissionData, setCommissionData] = useState<CommissionData | null>(null)
   const [loading, setLoading] = useState(false)
-  
+  const [uploading, setUploading] = useState(false)
+  const [queries, setQueries] = useState([]);
+  const [query, setQuery] = useState('');
+
   
 
+  const [formData, setFormData] = useState({
+    name: '',
+    mobileNo: '',
+    email: '',
+    city: '',
+    platform: 'Facebook',
+    assignedTo: session?.user.id
+  });
+  const platforms = ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube'];
+  
+  
+  
   useEffect(() => {
     if (session) {
+      if(session.user.role === 'partner'){
       fetchLeads();
       fetchSales();
       fetchKits();
       fetchKitHistory();
       fetchReceivedKits();
-      fetchCommissionData()
-      
+      fetchCommissionData();
+      fetchQueries();
+      setFormData((prev) => ({
+        ...prev,
+        assignedTo: session?.user.id
+    }));
+      }
     }
     
   }, [session]);
+
+  
   
 
   if (status === 'loading') return <div>Loading...</div>;
@@ -289,6 +427,21 @@ export default function Dashboard() {
     }
   };
 
+  const fetchQueries = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/queries`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setQueries(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching queries:', error);
+    }
+  };
+
   const handleStatusUpdate = async (leadId : any, newStatus : any)  => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads?id=${leadId}`, {
@@ -312,6 +465,9 @@ export default function Dashboard() {
         body: JSON.stringify({
           leadId,
           amount: parseFloat(formData.amount),
+          address: formData.address,
+          state: formData.state,
+          pincode: formData.pincode,
           partnerId: session.user.id,
           firstMonthSubscription,
           amountChargedFirstMonth: amountChargedFirstMonth ? parseFloat(amountChargedFirstMonth) : null,
@@ -380,14 +536,85 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error updating subscription:', error);
     }}
+
+
+    const handleFileUpload = async (formData: FormData) => {
+      setUploading(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+  
+        if (response.ok) {
+          const result = await response.json();
+          alert(`Successfully uploaded ${result.count} leads`);
+          fetchLeads(); // Refresh the leads list
+        } else {
+          const error = await response.json();
+          alert(`Error uploading file: ${error.message}`);
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        alert('Error uploading file');
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      try {
+        console.log(formData)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) {
+          setFormData({
+            name: '',
+            mobileNo: '',
+            email: '',
+            city: '',
+            platform: 'Facebook',
+            assignedTo: session?.user.id
+          });
+          fetchLeads();
+        }
+      } catch (error) {
+        console.error('Error creating lead:', error);
+      }
+    };
+
+
+    
+    const handleResponseSubmit = async (queryId: string, response: string) => {
+      setResponse(response);
+      try {
+        const res = await fetch(`/api/queries`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ _id: queryId, reply: response, resolvedBy: session?.user.id }),
+        });
+        if (res.ok) {
+          // Optionally refresh the queries or update local state
+        }
+      } catch (error) {
+        console.error('Error updating response:', error);
+      }
+    };
+  
   
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Partner Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-4">{session.user.role.charAt(0).toUpperCase() + session.user.role.slice(1)} Dashboard</h1>
       <p className="mb-6">Welcome, {session.user.name}</p>
+
+      {session.user.role === 'admin' && (<><AdminNotificationPanel /></>)}
       
-      {session.user.role !== 'admin' ? (
+      {session.user.role === 'partner' && (<>
         <Tabs defaultValue="leads" className="w-full">
           <TabsList>
             <TabsTrigger value="leads">Leads</TabsTrigger>
@@ -395,13 +622,14 @@ export default function Dashboard() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="kits">Kits</TabsTrigger>
             <TabsTrigger value="commissions">Commissions</TabsTrigger>
+            <TabsTrigger value="queries">Queries</TabsTrigger>
           </TabsList>
           
           <TabsContent value="leads">
             <div className="space-y-6">
               <LeadTable leads={leads} status="new" handleStatusUpdate={handleStatusUpdate} />
               <LeadTable leads={leads} status="contacted" handleStatusUpdate={handleStatusUpdate} />
-              <LeadTable leads={leads} status="successful" handleStatusUpdate={handleStatusUpdate} />
+              <LeadTable leads={leads} status="successful"  />
               <LeadTable leads={leads} status="lost" handleStatusUpdate={handleStatusUpdate} />
             </div>
           </TabsContent>
@@ -441,9 +669,7 @@ export default function Dashboard() {
                             onSubmit={(e) => {
                               e.preventDefault()
                               const target = e.target as HTMLFormElement;
-                              handleSaleRecord(lead._id, {
-                                amount: target.amount.value
-                              })
+                              handleSaleRecord(lead._id, { amount: target.amount.value , address: target.address.value , state: target.state.value , pincode: target.pincode.value });
                             }}
                             className="space-y-4 mt-4"
                           >
@@ -457,6 +683,36 @@ export default function Dashboard() {
                                 step="10"
                                 required
                                 placeholder="Enter amount"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="address">Address</Label>
+                              <Input
+                                id="address"
+                                name="address"
+                                type="text"
+                                required
+                                placeholder="Enter address"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="state">State</Label>
+                              <Input
+                                id="state"
+                                name="state"
+                                type="text"
+                                required
+                                placeholder="Enter state"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="pincode">Pincode</Label>
+                              <Input
+                                id="pincode"
+                                name="pincode"
+                                type="text"
+                                required
+                                placeholder="Enter pincode"
                               />
                             </div>
                             <Button type="submit" className="w-full">
@@ -596,6 +852,92 @@ export default function Dashboard() {
                 })}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Self Lead Generation </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-8 space-y-4">
+            <Label className="text-lg font-semibold">Upload CSV/Excel File</Label>
+            <FileUploadZone onFileSelect={(file) => {
+              const formData = new FormData();
+              formData.append('file', file);
+              handleFileUpload(formData);
+            }} uploading={uploading} />
+            <Alert className="bg-primary/5 border-primary/20">
+              <AlertDescription className="text-sm">
+                Upload a CSV or Excel file with columns: name, mobileNo, email, city, platform
+              </AlertDescription>
+            </Alert>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  placeholder="Enter name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Mobile Number</Label>
+                <Input
+                  placeholder="Enter mobile number"
+                  value={formData.mobileNo}
+                  onChange={(e) => setFormData({ ...formData, mobileNo: e.target.value })}
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="Enter email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input
+                  placeholder="Enter city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Platform</Label>
+                <Select
+                  value={formData.platform}
+                  onValueChange={(value) => setFormData({ ...formData, platform: value })}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select Platform" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {platforms.map((platform) => (
+                      <SelectItem key={platform} value={platform}>
+                        {platform}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button type="submit" className="w-full h-10">
+              Add Lead
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div> 
@@ -894,8 +1236,14 @@ export default function Dashboard() {
       )}
             </div>
           </TabsContent>
+          <TabsContent value="queries">
+          <QueryTable queries={queries} onQueryUpdate={fetchQueries}
+              />
+                
+          </TabsContent>
         </Tabs>
-      ) : null}
+    </> )} 
+    {session?.user.role === 'user' && <UserDashboard />}
     </div>
   );
 }

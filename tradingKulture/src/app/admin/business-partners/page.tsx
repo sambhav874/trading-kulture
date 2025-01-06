@@ -161,7 +161,7 @@ export default function UsersList() {
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <UserPlus className="mr-2 h-4 w-4" />
-                Add New User
+                Add New Partner
               </Button>
             </DialogTrigger>
             <DialogContent>

@@ -43,6 +43,7 @@ export async function PUT(request: NextRequest) {
       new: true,
       runValidators: true,
     })
+    
     if (!lead) {
       return NextResponse.json({ success: false }, { status: 404 })
     }

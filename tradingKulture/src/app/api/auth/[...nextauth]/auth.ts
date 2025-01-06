@@ -65,7 +65,7 @@ export const authConfig: NextAuthOptions = {
             name: user.name,
             email: user.email,
             googleId: account?.providerAccountId,
-            role: 'partner',
+            role: 'user',
           });
           isNewUser = true;
         }

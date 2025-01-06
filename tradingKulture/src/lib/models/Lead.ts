@@ -36,8 +36,21 @@ const leadSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  }
+  },
+  address: {
+    type: String,
+    default: '',
+  },
+  pincode: {
+    type: Number,
+    default: 0,
+  },
+  state: {
+    type: String,
+    default: '',
+  },
 })
+  
 
 const Lead = mongoose.models.Lead || mongoose.model('Lead', leadSchema)
 

@@ -11,8 +11,8 @@ const UserSchema = new mongoose.Schema({
   password: String,
   role: {
     type: String,
-    enum: ['admin', 'partner'],
-    default: 'partner'
+    enum: ['admin', 'partner', 'user'],
+    default: 'user'
   },
   isProfileComplete: {
     type: Boolean ,
@@ -34,3 +34,5 @@ const UserSchema = new mongoose.Schema({
 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);
+
+

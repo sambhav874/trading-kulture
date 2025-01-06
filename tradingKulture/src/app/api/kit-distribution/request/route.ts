@@ -4,6 +4,8 @@ import { authConfig } from '../../auth/[...nextauth]/auth';
 import dbConnect from '@/lib/db';
 import { KitRequest } from '@/lib/models/KitRequest';
 import { Inventory } from '@/lib/models/Inventory';
+import { createNotification } from '@/lib/notifications';
+import { NotificationType } from '@/lib/models/Notification';
 
 export async function GET(request: Request) {
   try {
@@ -81,6 +83,8 @@ export async function POST(request: Request) {
       status: 'pending',
       date: new Date()
     });
+
+    
 
     return NextResponse.json({
       request: kitRequest,

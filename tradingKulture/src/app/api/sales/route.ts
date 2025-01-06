@@ -9,6 +9,8 @@ import { Inventory } from '@/lib/models/Inventory';
 import ManagedCommission from '@/lib/models/ManagedCommission';
 import Commission from '@/lib/models/Commission';
 import { User as UserType } from '@/types/index';
+import { createNotification } from '@/lib/notifications';
+import { NotificationType } from '@/lib/models/Notification';
 
 export async function GET(request : Request) {
   try {
@@ -46,7 +48,9 @@ export async function POST(request : Request) {
     }
 
     const body = await request.json();
-    const { leadId, amount, partnerId } = body;
+    const { leadId, amount, partnerId , address ,
+      state ,
+      pincode  } = body;
     console.log('Request body:', body);
 
     // Validate required fields
@@ -83,12 +87,12 @@ export async function POST(request : Request) {
       return NextResponse.json({ error: 'Insufficient inventory for this sale' }, { status: 400 });
     }
 
-    // Verify the lead exists and belongs to the partner
-    const lead = await Lead.findOne({ _id: leadId, assignedTo : partnerId });
+    
+    const lead = await Lead.findOneAndUpdate({ _id: leadId, assignedTo : partnerId } , { address , state , pincode } , { new: true });
     if (!lead) {
       return NextResponse.json({ error: 'Lead not found or unauthorized' }, { status: 404 });
     }
-
+    
     // Create the sale record
     const sale = new Sale({
       leadId,
@@ -100,6 +104,14 @@ export async function POST(request : Request) {
     });
 
     await sale.save();
+    await sale.populate('leadId', 'name'); // Populate leadId to get the name
+
+    await createNotification({
+      message: `Sale done to ${sale.leadId.name} with amount ${sale.amount} has been updated (Sale ID: ${sale._id})`,
+      partnerId: partnerId,
+      type: NotificationType.SALE_RECORDED,
+      saleId: sale._id  
+    })
 
     // Update lead status to successful if not already
     if (lead.status !== 'successful') {
@@ -266,6 +278,8 @@ export async function PUT(request: Request) {
       { new: true }
     ).populate('leadId', 'name email');
 
+    
+
     if (!sale) {
       return NextResponse.json({ error: 'Sale not found or unauthorized' }, { status: 404 });
     }
@@ -283,4 +297,3 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
   }
 }
-
