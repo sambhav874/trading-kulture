@@ -14,6 +14,6 @@ export async function GET() {
       .populate('kitRequestId', 'quantity status'); // Populate kit request details (if applicable)
     return NextResponse.json(notifications);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch notifications : ' + (error as Error).message }, { status: 500 });
   }
 }
