@@ -33,7 +33,7 @@ const UserDashboard = () => {
   const fetchQueries = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/queries?userId=${session?.user?.id}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/queries?userId=${session?.user?.id}`)
       if (response.ok) {
         const data = await response.json()
         setQueries(data)
@@ -60,7 +60,7 @@ const UserDashboard = () => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await fetch('/api/queries', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/queries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

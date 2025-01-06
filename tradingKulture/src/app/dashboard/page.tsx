@@ -52,6 +52,20 @@ interface CommissionData {
   sales: Sale[]
 }
 
+interface Query {
+  _id: string;
+  query: string;
+  reply: string;
+  createdAt: string;
+  resolvedBy: string | null;
+}
+
+interface QueryTableProps {
+  queries: Query[];
+  onQueryUpdate: () => void;
+}
+
+
 const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
   <Card className="mb-6">
     <CardHeader>
@@ -101,18 +115,8 @@ const LeadTable = ({ leads , status, handleStatusUpdate } : any) => (
   </Card>
 );
 
-interface Query {
-  _id: string;
-  query: string;
-  reply: string;
-  createdAt: string;
-  resolvedBy: string | null;
-}
 
-interface QueryTableProps {
-  queries: Query[];
-  onQueryUpdate: () => void;
-}
+
 
 export const QueryTable: React.FC<QueryTableProps> = ({ queries, onQueryUpdate }) => {
   const { data: session } = useSession();
@@ -124,7 +128,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ queries, onQueryUpdate }
 
   const handleResponseSubmit = async (queryId: string) => {
     try {
-      const res = await fetch(`/api/queries`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/queries`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -228,8 +232,7 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false)
   const [queries, setQueries] = useState([]);
   const [query, setQuery] = useState('');
-
-  
+  const [response, setResponse] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -592,7 +595,7 @@ export default function Dashboard() {
     const handleResponseSubmit = async (queryId: string, response: string) => {
       setResponse(response);
       try {
-        const res = await fetch(`/api/queries`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/queries`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ _id: queryId, reply: response, resolvedBy: session?.user.id }),

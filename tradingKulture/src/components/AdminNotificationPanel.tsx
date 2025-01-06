@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from './ui/button';
 
 interface Notification {
   _id: string;
@@ -27,7 +29,7 @@ export default function AdminNotificationPanel() {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('/api/notifications');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`);
         const data = await response.json();
         setNotifications(data);
       } catch (error) {
@@ -45,8 +47,15 @@ export default function AdminNotificationPanel() {
   }
 
   return (
-    <div className="mt-6">
-      <h2 className="text-xl font-bold mb-4">Notifications</h2>
+    <div className="mt-6  ">
+      <div className='flex justify-between'>
+        <h2 className="text-3xl font-bold mb-2">Notifications</h2>
+  <Button>
+    <Link href={`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`} className="m-2 p-2">Visit Dashboard</Link>
+  </Button>
+      </div>
+  
+
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />

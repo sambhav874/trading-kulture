@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Upload, File, X, Command, Search, User } from 'lucide-react';
+import { Loader2, Upload, File, X, Command, Search, User, ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
 // import { CommandInput, CommandEmpty, CommandGroup, CommandItem } from 'cmdk';
@@ -37,12 +37,12 @@ interface Lead {
 
 const UserSelectItem = ({ user }: { user: User }) => (
   <div className="flex items-center gap-2 py-2">
-    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+    <div className="h-8 w-8  rounded-full bg-primary/10 flex items-center justify-center">
       <User className="h-4 w-4 text-primary" />
     </div>
-    <div className="flex flex-col">
-      <div className="font-medium">{user.name || 'Unnamed User'}</div>
-      <div className="text-xs text-muted-foreground">
+    <div className="flex flex-col ">
+      <div className="font-medium ">{user.name || 'Unnamed User'}</div>
+      <div className="text-xs  text-muted-foreground">
         {user.phoneNumber || 'No phone'} • {user.city || 'No city'}
       </div>
     </div>
@@ -67,23 +67,24 @@ const UserCombobox = ({ users, value, onChange }: { users: User[], value: string
   const selectedUser = users.find(user => user._id === value);
 
   return (
-    <Popover open={open}   onOpenChange={setOpen}>
-      <PopoverTrigger className='bg-white w-full' asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild >
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full bg-white justify-between"
+          className="w-full  justify-between bg-white hover:bg-muted/50"
         >
           {selectedUser ? (
             <UserSelectItem user={selectedUser} />
           ) : (
             <span className="text-muted-foreground">Select user...</span>
           )}
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full bg-white z-100 p-0" align="start">
-        <div className="p-2">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2 bg-white shadow-lg rounded-md border border-muted-foreground/20 z-[1000]">
+        <div className="p-2 border-b border-muted-foreground/20">
           <Input 
             placeholder="Search users..."
             value={searchQuery}
@@ -91,14 +92,14 @@ const UserCombobox = ({ users, value, onChange }: { users: User[], value: string
             className="h-9 w-full"
           />
         </div>
-        <div className="max-h-64 w-fulloverflow-auto">
+        <div className="max-h-64 overflow-y-auto">
           {filteredUsers.length === 0 ? (
-            <div className="p-2 text-sm text-muted-foreground">No users found.</div>
+            <div className="p-4 text-sm text-muted-foreground text-center">No users found.</div>
           ) : (
             filteredUsers.map((user) => (
               <div
                 key={user._id}
-                className="cursor-pointer p-2 hover:bg-muted"
+                className="cursor-pointer p-2 hover:bg-muted/50 transition-colors"
                 onClick={() => {
                   onChange(user._id);
                   setOpen(false);
@@ -381,7 +382,7 @@ const LeadPage = () => {
 
   return (
     <div className="p-6 space-y-6  max-w-7xl mx-auto">
-      <Card className="shadow-lg">
+      <Card className="shadow-lg py-4">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Add New Lead</CardTitle>
         </CardHeader>
@@ -462,7 +463,7 @@ const LeadPage = () => {
               </div>
               <div className="space-y-2 w-full">
                 <Label>Assign To</Label>
-                <UserCombobox 
+                <UserCombobox  
                   users={users}
                   value={formData.assignedTo}
                   onChange={(value) => setFormData({ ...formData, assignedTo: value })}
@@ -476,22 +477,22 @@ const LeadPage = () => {
         </CardContent>
       </Card>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg py-6">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl font-bold">Leads</CardTitle>
+          <CardTitle className="text-4xl my-4 font-bold">Leads</CardTitle>
           <Input
             placeholder="Search leads..."
-            className="max-w-xs h-10"
+            className="max-w-xs my-6 h-10"
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto z-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
+                <TableRow className="bg-muted/50 my-4">
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Mobile</TableHead>
                   <TableHead className="font-semibold">Email</TableHead>

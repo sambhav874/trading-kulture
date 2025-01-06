@@ -46,13 +46,13 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 )}
-                <Link href="/profile" passHref>
+                <Link href={`${process.env.NEXT_PUBLIC_API_URL}/profile`} passHref>
                   <Button variant="ghost" className="text-white hover:bg-gray-900 hover:text-[#39FF14]">
                     Profile
                   </Button>
                 </Link>
                 {session.user.role === 'partner' && (
-                  <Link href="/support" passHref>
+                  <Link href={`${process.env.NEXT_PUBLIC_API_URL}/support`} passHref>
                     <Button variant="ghost" className="text-white hover:bg-gray-900 hover:text-[#39FF14]">
                       Support
                     </Button>
@@ -147,7 +147,7 @@ export default function Navbar() {
               </Button>
             </>
           ) : (
-            <Link href="/auth/signin" passHref>
+            <Link href={`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`} passHref>
               <Button variant="default" className="w-full bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14]">
                 Sign in
               </Button>
