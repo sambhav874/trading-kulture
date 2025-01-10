@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { Inventory } from '@/lib/models/Inventory';
 import { KitDistribution } from '@/lib/models/KitDistribution';
+import { createPartnerNotification } from '@/lib/partnerNotifications';
+import { PartnerNotificationType } from '@/lib/models/PartnerNotification';
 
 export async function POST(request: NextRequest) {
   await dbConnect();
@@ -26,6 +28,16 @@ export async function POST(request: NextRequest) {
       totalAmount: quantity * amountPerKit,
       distributionDate,
       notes: `Distribution of ${quantity} kits at ₹${amountPerKit} per kit`
+    });
+
+    const distributedPartnerId = await distribution
+      .populate('partnerId', 'name email ')
+
+    await createPartnerNotification({
+      type: PartnerNotificationType.KITS_DISTRIBUTED,
+      message: `${quantity} kits are distributed to '${distributedPartnerId.partnerId.name}' (Kit Distribution ID: ${distributedPartnerId._id})`,
+      partnerId,
+      kitDistributionId: distribution._id
     });
 
     // Find existing inventory or create new one

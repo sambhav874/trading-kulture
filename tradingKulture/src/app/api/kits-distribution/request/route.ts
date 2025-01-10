@@ -7,6 +7,8 @@ import { Inventory } from '@/lib/models/Inventory';
 import  User  from '@/lib/models/User'; // Import Partner model
 import { NotificationType } from '@/lib/models/Notification';
 import { createNotification } from '@/lib/notifications';
+import { PartnerNotificationType } from '@/lib/models/PartnerNotification';
+import { createPartnerNotification } from '@/lib/partnerNotifications';
 
 export async function POST(request: Request) {
   try {
@@ -127,6 +129,13 @@ export async function PUT(request: Request) {
       { status },
       { new: true } // Return the updated document
     ).populate('partnerId', 'name email '); // Populate partner details
+
+    await createPartnerNotification({
+      type: PartnerNotificationType.KIT_REQUEST_APPROVAL,
+      message: `Kits request created by '${updatedRequest.partnerId.name}' is ${updatedRequest.status} (Kit Request ID: ${updatedRequest._id}) `,
+      partnerId: updatedRequest.partnerId,
+      kitRequestId: updatedRequest._id
+    });
 
     if (!updatedRequest) {
       return NextResponse.json(

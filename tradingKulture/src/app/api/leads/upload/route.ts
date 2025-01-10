@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
           return {
             ...row,
             status: 'new',
-            date: new Date()
+            date: new Date(),
+            createdBy: session?.user.id
           };
         }
         throw new Error('Invalid row data');

@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, File, X, Command, Search, User, ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
+import { useSession } from 'next-auth/react';
 // import { CommandInput, CommandEmpty, CommandGroup, CommandItem } from 'cmdk';
 
 interface User {
@@ -33,6 +34,7 @@ interface Lead {
   platform: string;
   status: string;
   assignedTo?: User;
+  createdBy?: User;
 }
 
 const UserSelectItem = ({ user }: { user: User }) => (
@@ -250,6 +252,8 @@ const FileUploadZone = ({ onFileSelect, uploading }: { onFileSelect: (file: File
 };
 
 const LeadPage = () => {
+
+  const { data: session } = useSession();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -259,7 +263,8 @@ const LeadPage = () => {
     email: '',
     city: '',
     platform: 'Facebook',
-    assignedTo: ''
+    assignedTo: '',
+    createdBy: session?.user.id
   });
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -306,7 +311,8 @@ const LeadPage = () => {
           email: '',
           city: '',
           platform: 'Facebook',
-          assignedTo: ''
+          assignedTo: '',
+          createdBy: session?.user.id
         });
         fetchLeads();
       }

@@ -1,4 +1,6 @@
 // pages/api/leads/index.js
+import { PartnerNotificationType } from '@/lib/models/PartnerNotification';
+import { createPartnerNotification } from '@/lib/partnerNotifications';
 import dbConnect from '../../../lib/db'
 import Lead from '../../../lib/models/Lead'
 import { NextRequest, NextResponse } from 'next/server'
@@ -27,6 +29,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const lead = await Lead.create(await request.json())
+    await createPartnerNotification({
+      type: PartnerNotificationType.LEAD_ALLOTED,
+      message: `You have a new lead: ${lead.name} (Lead ID: ${lead._id})`,
+      partnerId: lead.assignedTo,
+      leadId: lead._id,
+    })
     return NextResponse.json(lead, { status: 201 })
   } catch (error: unknown) {
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 })
