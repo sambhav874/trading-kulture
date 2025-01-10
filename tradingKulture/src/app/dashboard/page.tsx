@@ -24,6 +24,7 @@ import AdminNotificationPanel from '@/components/AdminNotificationPanel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import FileUploadZone from '@/components/FileUploadZone';
 import UserDashboard from '@/components/UserDashboard';
+import PartnerNotificationPanel from '@/components/PartnerNotificationPanel';
 
 
 interface CommissionSlab {
@@ -214,6 +215,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ queries, onQueryUpdate }
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
+  console.log(session)
   const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [sales, setSales] = useState([]);
@@ -240,7 +242,8 @@ export default function Dashboard() {
     email: '',
     city: '',
     platform: 'Facebook',
-    assignedTo: session?.user.id
+    assignedTo: session?.user.id,
+    createdBy: session?.user.id
   });
   const platforms = ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube'];
   
@@ -255,16 +258,24 @@ export default function Dashboard() {
       fetchKitHistory();
       fetchReceivedKits();
       fetchCommissionData();
-      fetchQueries();
+      
       setFormData((prev) => ({
         ...prev,
-        assignedTo: session?.user.id
+        assignedTo: session?.user.id,
+        createdBy: session?.user.id
     }));
       }
     }
     
   }, [session]);
 
+  useEffect(() => {
+    if (session) {
+      if(session.user.role === 'support'){
+      fetchQueries();
+    }
+  }
+  }, [session]);
   
   
 
@@ -581,7 +592,8 @@ export default function Dashboard() {
             email: '',
             city: '',
             platform: 'Facebook',
-            assignedTo: session?.user.id
+            assignedTo: session?.user.id,
+            createdBy: session?.user.id
           });
           fetchLeads();
         }
@@ -620,13 +632,18 @@ export default function Dashboard() {
       {session.user.role === 'partner' && (<>
         <Tabs defaultValue="leads" className="w-full">
           <TabsList>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="kits">Kits</TabsTrigger>
             <TabsTrigger value="commissions">Commissions</TabsTrigger>
-            <TabsTrigger value="queries">Queries</TabsTrigger>
+            
           </TabsList>
+
+          <TabsContent value="notifications">
+            <PartnerNotificationPanel />
+          </TabsContent>
           
           <TabsContent value="leads">
             <div className="space-y-6">
@@ -1239,14 +1256,15 @@ export default function Dashboard() {
       )}
             </div>
           </TabsContent>
-          <TabsContent value="queries">
-          <QueryTable queries={queries} onQueryUpdate={fetchQueries}
-              />
-                
-          </TabsContent>
+ 
         </Tabs>
     </> )} 
     {session?.user.role === 'user' && <UserDashboard />}
+
+    {session?.user.role === 'support' && (
+      <QueryTable queries={queries} onQueryUpdate={fetchQueries}
+      />
+    )}
     </div>
   );
 }

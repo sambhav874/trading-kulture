@@ -134,6 +134,39 @@ export default function UsersList() {
     }
   }
 
+  const handleAddSupportUser = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/support-users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          password: newUserPassword
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+
+      const newUser = await response.json();
+      setUsers(prevUsers  => [...prevUsers, newUser]);
+      setIsDialogOpen(false); // Close the dialog
+      setNewUserEmail('');
+      setNewUserPassword('');
+      toast({
+        title: 'Success',
+        description: 'User created successfully',
+      });
+    } catch (error  : any) {
+      console.error('Error adding user:', error);
+      alert(error.message || 'Failed to create user');
+    }
+  }
+
+
   const filteredUsers = users.filter((user  : any) =>
     (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -157,6 +190,7 @@ export default function UsersList() {
             <h1 className="text-3xl font-bold text-gray-900">Users</h1>
             <p className="text-gray-600 mt-1">Manage system users and business partners</p>
           </div>
+          <div className='gap-2 flex'>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700">
@@ -184,6 +218,36 @@ export default function UsersList() {
               <Button onClick={handleAddUser} className="w-full">Create User</Button>
             </DialogContent>
           </Dialog>
+        
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add New Support User
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Support User</DialogTitle>
+              </DialogHeader>
+              <Input
+                placeholder="Email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                className="mb-4"
+              />
+              <Input
+                type="password"
+                placeholder="Password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                className="mb-4"
+              />
+              <Button onClick={handleAddSupportUser} className="w-full">Create Support User</Button>
+            </DialogContent>
+          </Dialog>
+          </div>
         </div>
 
         <Card>

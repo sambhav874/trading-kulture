@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+
 import {
   Card,
   CardContent,
@@ -16,13 +16,22 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 
+interface Partner {
+  name: string
+  email: string
+  phoneNumber: string
+  city: string
+  state: string
+}
+
 export default function EditPartner() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const params = useParams()
+  const { id: userId } = useParams<{ id: string }>()
+  
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [partner, setPartner] = useState({
+  const [partner, setPartner] = useState<Partner>({
     name: '',
     email: '',
     phoneNumber: '',
@@ -38,35 +47,34 @@ export default function EditPartner() {
 
     const fetchPartner = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${params.id}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${userId}`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
         const data = await response.json()
         
-        if (response.ok && data.length > 0) {
-          setPartner(data[0])
-        } else {
-          alert('Error fetching partner details')
-          router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
-        }
+        console.log('Fetched partner is :', data )
+        setPartner(data)
+        
       } catch (error) {
         console.error('Error fetching partner:', error)
         alert('Error fetching partner details')
-        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
       } finally {
         setLoading(false)
       }
     }
 
-    if (session?.user.role === 'admin' && params.id) {
+    if (session?.user.role === 'admin' && userId) {
       fetchPartner()
     }
-  }, [session, status, params.id, router])
+  }, [session, status, userId, router])
 
-  const handleSubmit = async (e : any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
   
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/partners?id=${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +86,7 @@ export default function EditPartner() {
   
       if (response.ok) {
         alert('Partner updated successfully')
-        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners/`)
+        router.push(`${process.env.NEXT_PUBLIC_API_URL}/admin/business-partners`)
       } else {
         alert(data.message || 'Error updating partner')
       }
@@ -90,7 +98,7 @@ export default function EditPartner() {
     }
   }
 
-  const handleChange = (e : any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setPartner(prev => ({
       ...prev,
@@ -138,7 +146,8 @@ export default function EditPartner() {
                   name="email"
                   type="email"
                   value={partner.email}
-                  disabled
+                  onChange={handleChange}
+                  required
                 />
               </div>
 

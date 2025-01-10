@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Query from '@/lib/models/Query';
+import { NotificationType } from '@/lib/models/Notification';
+import { createNotification } from '@/lib/notifications';
 
 export async function GET(req: NextRequest) {
   await connectDB();
@@ -33,8 +35,17 @@ export async function POST(req: NextRequest) {
       createdBy,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    })
+
     await newQuery.save();
+
+    const user = await newQuery.populate('createdBy', 'name email');
+
+    createNotification({
+      type: NotificationType.QUERY,
+      message: `You have a new query: ${query} by ${user.createdBy.name} (Query ID: ${newQuery._id})`,
+      partnerId: createdBy,
+    });
     return NextResponse.json(newQuery);
   } catch (error) {
     console.error('Error creating query:', error);
