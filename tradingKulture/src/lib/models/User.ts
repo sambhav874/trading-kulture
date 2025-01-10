@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   password: String,
   role: {
     type: String,
-    enum: ['admin', 'partner', 'user'],
+    enum: ['admin', 'partner', 'user' , 'support'],
     default: 'user'
   },
   isProfileComplete: {

@@ -5,6 +5,7 @@ export enum NotificationType {
   LEAD_STATUS_UPDATE = 'LEAD_STATUS_UPDATE',
   SALE_RECORDED = 'SALE_RECORDED',
   KIT_REQUEST = 'KIT_REQUEST',
+  QUERY = 'QUERY',
 }
 
 const notificationSchema = new mongoose.Schema({
@@ -14,6 +15,7 @@ const notificationSchema = new mongoose.Schema({
   leadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' }, // Optional: Related lead
   saleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Sale' }, // Optional: Related sale
   kitRequestId: { type: mongoose.Schema.Types.ObjectId, ref: 'KitRequest' }, // Optional: Related kit request
+  queryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Query' }, // Optional: Related query
   timestamp: { type: Date, default: Date.now }, // When the operation occurred
 });
 
