@@ -7,7 +7,7 @@ export async function GET() {
     await connectDB();
     console.log('Connected to MongoDB');
     const notifications = await Notification.find()
-      .sort({ timestamp: -1 })
+      .sort({ timestamp: -1 }).populate('partnerId', 'name email')
       
     return NextResponse.json(notifications);
   } catch (error) {
