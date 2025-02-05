@@ -120,6 +120,20 @@ export default function Home() {
         stagger: 0.2
       });
 
+
+      // Add this to your useEffect hook
+gsap.from(".journal-feature", {
+  scrollTrigger: {
+    trigger: ".journal-feature",
+    start: "top center+=100",
+    toggleActions: "play none none reverse"
+  },
+  opacity: 0,
+  y: 50,
+  duration: 0.8,
+  stagger: 0.2
+});
+
       // CTA Animation
       gsap.from(ctaRef.current, {
         scrollTrigger: {
@@ -157,7 +171,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-gray-950">
+    <div suppressHydrationWarning className="min-h-screen bg-gradient-to-b from-black to-gray-950 ">
       {/* Hero Section */}
       <div ref={heroRef} className="relative isolate px-6 pt-14 lg:px-8">
         <div className="absolute inset-x-0 -top-40 transform-gpu overflow-hidden blur-3xl" aria-hidden="true">
@@ -366,6 +380,107 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+
+
+
+      {/* Trading Journal Section */}
+<div className="py-24 bg-black">
+  <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="relative overflow-hidden rounded-3xl bg-gray-900 px-6 py-20 shadow-2xl sm:px-24 xl:py-32">
+      <div className="absolute -top-10 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl" aria-hidden="true">
+        <div 
+          className="aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#39FF14] to-[#80ff65] opacity-30" 
+          style={{
+            clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.0%)'
+          }} 
+        />
+      </div>
+      
+      <div className="mx-auto max-w-4xl text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Enhance Your Trading with Our Journal
+          <br />
+          <span className="text-[#39FF14]">Track, Analyze, Improve</span>
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-gray-300">
+          Our comprehensive trading journal helps you track your trades, analyze your performance, and improve your strategy with detailed insights.
+        </p>
+
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-black/50 border border-[#39FF14]/20 hover:border-[#39FF14] transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-[#39FF14]">Track Trades</CardTitle>
+              <CardDescription className="text-gray-400">
+                Log your trades with detailed entry and exit points
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-black/50 border border-[#39FF14]/20 hover:border-[#39FF14] transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-[#39FF14]">Analytics Dashboard</CardTitle>
+              <CardDescription className="text-gray-400">
+                Visualize your performance with advanced charts
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-black/50 border border-[#39FF14]/20 hover:border-[#39FF14] transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-[#39FF14]">Smart Insights</CardTitle>
+              <CardDescription className="text-gray-400">
+                Get AI-powered suggestions to improve your strategy
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <div className="mt-10 flex items-center justify-center gap-x-6">
+          <Link href={process.env.NEXT_PUBLIC_TRADING_JOURNAL_URL as string}>
+            <Button 
+              className="bg-[#39FF14] text-black hover:bg-black hover:text-[#39FF14] border-2 border-[#39FF14] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#39FF14]/50"
+            >
+              Try Trading Journal
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+         
+        </div>
+
+        {/* Stats */}
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div>
+            <p className="text-4xl font-bold text-[#39FF14]">100%</p>
+            <p className="mt-2 text-sm text-gray-400">Trade History</p>
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-[#39FF14]">24/7</p>
+            <p className="mt-2 text-sm text-gray-400">Access</p>
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-[#39FF14]">Real-time</p>
+            <p className="mt-2 text-sm text-gray-400">Analytics</p>
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-[#39FF14]">AI-Powered</p>
+            <p className="mt-2 text-sm text-gray-400">Insights</p>
+          </div>
+        </div>
+
+        {/* Example Preview */}
+        <div className="mt-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" />
+          <img
+            src="/interface.png" // Add your preview image
+            alt="Trading Journal Preview"
+            className="rounded-xl border border-[#39FF14]/20 shadow-2xl shadow-[#39FF14]/10"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Pricing Section */}
       <div ref={pricingRef} className="py-24 bg-gray-950">
